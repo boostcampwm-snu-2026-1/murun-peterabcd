@@ -5,17 +5,17 @@
 ## 문서 색인
 
 ### 기획
-- [01 · 프로젝트 기획서](./01-Project-Plan.md) — 서비스 목표, 타깃, 핵심 기능
-- [02 · 기술 스택 선택과 이유](./02-Tech-Stack.md)
-- [03 · 화면 흐름 / 데이터 모델 초안](./03-Screen-Flow.md)
+- [01 · 프로젝트 기획서](01-Project-Plan) — 서비스 목표, 타깃, 핵심 기능
+- [02 · 기술 스택 선택과 이유](02-Tech-Stack)
+- [03 · 화면 흐름 / 데이터 모델 초안](03-Screen-Flow)
 
 ### Agent 개발 워크플로우
-- [04 · Agent 개발 workflow 흐름 초안](./04-Agent-Workflow.md)
-- [05 · 프롬프트 패턴 모음](./05-Prompt-Patterns.md)
-- [06 · 직접 검증/판단 체크포인트](./06-Checkpoints.md)
+- [04 · Agent 개발 workflow 흐름 초안](04-Agent-Workflow)
+- [05 · 프롬프트 패턴 모음](05-Prompt-Patterns)
+- [06 · 직접 검증/판단 체크포인트](06-Checkpoints)
 
 ### 진행 기록
-- [회고 · Week 1](./Retrospective-Week1.md)
+- [회고 · Week 1](Retrospective-Week1)
 
 ## 3주 로드맵 요약
 
@@ -29,4 +29,4 @@
 
 - **Vertical slice**: DB·서버·UI를 한 PR로 묶어 항상 "데모 가능한 상태"를 유지한다.
 - **Wiki는 진실의 원천**: 기획/결정/회고는 wiki에 먼저 쓴 다음 코드를 만진다.
-- **Agent에게 일을 시키되 검증은 내가 한다**: [`06-Checkpoints.md`](./06-Checkpoints.md)의 체크포인트는 사람이 직접 본다.
+- **Agent에게 일을 시키되 검증은 내가 한다**: [`06-Checkpoints`](06-Checkpoints)의 체크포인트는 사람이 직접 본다.
