@@ -1,0 +1,50 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Node
+node_modules/
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/install-state.gz
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test/coverage
+coverage/
+.nyc_output
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma generated
+prisma/migrations/dev.db*
+
+# Vercel
+.vercel
+
+# Runtime/agent state
+.gjc/state/
+.gjc/cache/
