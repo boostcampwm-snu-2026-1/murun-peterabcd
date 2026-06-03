@@ -158,8 +158,8 @@ PR 본문은 issue 자동 연결(`Closes #N`) + 변경 요약 + 스크린샷(모
          │
          ▼
   ┌──────────────────┐
-  │ Vercel preview/  │
-  │ prod 확인         │  👤
+  │ staging 자동 배포 │  👤
+  │ (N100 docker)    │
   └──────────────────┘
 ```
 
@@ -168,7 +168,7 @@ PR 본문은 issue 자동 연결(`Closes #N`) + 변경 요약 + 스크린샷(모
 - **DB migration 적용** (`prisma migrate deploy`)
 - **`main` 브랜치로의 merge**
 - **secret / env 값 변경**
-- **외부 서비스(Supabase, Vercel) 콘솔 설정 변경**
+- **외부 서비스(Google Cloud Console, duckdns, N100 호스트) 콘솔 설정 변경 시도**
 - **요구사항 자체의 수정** (spec MD는 내가 최종본을 가진다)
 
 ## 5. 발전 방향 (3주에 걸쳐 다듬을 것)

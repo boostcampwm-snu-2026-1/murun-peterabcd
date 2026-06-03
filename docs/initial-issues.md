@@ -1,66 +1,49 @@
-# 초기 GitHub Issues (Week 1 도출)
+# GitHub Issues 갱신 (Week 1 말 — 스택/모델 변경 반영)
 
-> 이 파일은 **Week 1 산출물**(개발 기능을 위한 task 도출)이다. gh CLI 인증 후 아래 스크립트로 한 번에 생성할 수 있다.
+> 1주차 처음에 만든 15개 이슈를 새 결정 사항에 맞춰 정리한다.
+>
+> - 자체 N100 서버 + Docker + Caddy + SQLite + Auth.js Google OAuth + 화이트리스트
+> - 권한 모델: 호스트가 세션 생성, 참여자 본인이 자기 행 입력
+> - 단체사진 원본 보존 (`next/image`로 서빙 시 캐시)
+>
+> 자동 적용: [`scripts/update-issues.sh`](../scripts/update-issues.sh) — `gh auth login` 후 실행.
 
-## 라벨 정책
+## 액션 표
 
-| 라벨 | 의미 |
-|------|------|
-| `type:feat` | 사용자 기능 (vertical slice 1개) |
-| `type:chore` | 설정/문서/리팩터링 |
-| `type:bug` | 버그 |
-| `area:infra` | 배포·env·CI |
-| `area:db` | Prisma schema / migration |
-| `area:ui` | Next.js page / component |
-| `area:auth` | 인증·권한 |
-| `prio:p1` | MVP 필수 |
-| `prio:p2` | MVP 후 |
-| `week:1` / `week:2` / `week:3` | 주차 |
+| 액션 | #  | 제목 | 사유 |
+|------|----|------|------|
+| keep | 1  | 저장소 초기 설정 & wiki 작성 | 이미 진행 중, 본문만 가볍게 정리 |
+| keep | 2  | GitHub Wiki 초기화 & docs/wiki 복사 | 그대로 |
+| **CLOSE** | 3 | Vercel 프로젝트 연결 + preview deploy | 자체 서버로 변경 → 신규 이슈 N-1 |
+| **CLOSE** | 4 | Supabase 프로젝트 생성 + .env.example | Supabase 미사용 → 신규 이슈 N-2 |
+| keep | 5  | CI: lint + typecheck + build on PR | 그대로 |
+| keep | 6  | Next.js 15 + Tailwind + shadcn 스캐폴드 | 그대로 |
+| **EDIT** | 7  | Prisma 초기 schema + 1차 migration | 모델 변경: User.approved/role, Session.hostId, Participation. SQLite provider 명시. |
+| **CLOSE** | 8 | Supabase 매직링크 로그인 | Auth.js Google OAuth로 교체 → 신규 이슈 N-3 |
+| **EDIT** | 9  | 세션 등록 페이지 (/sessions/new) | "호스트가 세션 생성"으로 의미 변경. 참여자 일괄 입력 제거 (별도 N-5로 분리). |
+| **EDIT** | 10 | 세션 상세 페이지 (/sessions/[id]) | "본인 행 추가/수정" 흐름 명시. |
+| keep | 11 | 세션 아카이브 리스트 (/sessions) | 그대로 |
+| **CLOSE** | 12 | 단체사진 업로드 파이프라인 | Supabase Storage 가정 → 로컬 디스크로 재정의 → 신규 이슈 N-6 |
+| keep | 13 | 멤버 페이지 + 누적/추이 | 그대로 |
+| **EDIT** | 14 | 검색/필터 | **참여 인원 수** 필터 추가 |
+| keep | 15 | OG 이미지 + PWA 매니페스트 | 그대로 |
+| **NEW N-1** | — | [chore] N100 서버 부트스트랩 + Docker + Caddy | 자체 호스팅 인프라 |
+| **NEW N-2** | — | [chore] `.env.example` + Auth.js secret 생성 | SQLite path / Google OAuth / NEXTAUTH_* |
+| **NEW N-3** | — | [feat] Auth.js v5 Google OAuth + @snu.ac.kr 도메인 강제 | hd 파라미터 검증 |
+| **NEW N-4** | — | [feat] 가입 화이트리스트 + /admin/members 승인 페이지 | User.approved + 관리자 승인 흐름 |
+| **NEW N-5** | — | [feat] 참여 기록 입력 (본인 행 추가/수정) | 세션 상세에서 본인 행 CRUD |
+| **NEW N-6** | — | [feat] 단체사진 업로드 (로컬 볼륨, 원본 보존) | 15MB 상한 + `next/image` 캐시 |
+| **NEW N-7** | — | [chore] GH Actions SSH deploy 파이프라인 (dev→staging, main→prod) | staging은 자동, prod는 수동 승인 |
 
-## 도출된 task (15건)
+## 라벨 추가
 
-### Week 1 — 기획 / 인프라 (지금 진행 중)
+| 라벨 | 색 | 의미 |
+|------|------|------|
+| `area:deploy` | `5319e7` | Docker/Caddy/SSH/GH Actions |
+| `area:host` | `1d76db` | N100 운영 (백업·인증서·도메인) |
 
-1. **[chore] 저장소 초기 설정 & wiki 작성** — `type:chore` `week:1` `prio:p1`
-   - dev 브랜치, README, wiki 문서 6종, 이슈/PR 템플릿, `.gjc/skills/`
-   - DoD: `dev` 브랜치 push, README와 docs/wiki/* 존재
-2. **[chore] GitHub Wiki 초기화 & docs/wiki 복사** — `type:chore` `week:1` `prio:p1`
-   - GitHub 웹에서 wiki 첫 페이지 생성 → `git clone .wiki.git` → docs/wiki 내용 push
-3. **[chore] Vercel 프로젝트 연결 + preview deploy 확인** — `type:chore` `area:infra` `week:1` `prio:p1`
-4. **[chore] Supabase 프로젝트 생성 + env.example 세팅** — `type:chore` `area:infra` `week:1` `prio:p1`
-5. **[chore] CI: lint + typecheck + build on PR** — `type:chore` `area:infra` `week:1` `prio:p2`
+## Week별 우선순위
 
-### Week 2 — MVP 구현
-
-6. **[feat] Next.js 15 + Tailwind + shadcn 스캐폴드** — `type:chore` `week:2` `prio:p1`
-   - DoD: `pnpm dev`로 빈 `/` 페이지 뜸, shadcn `Button` 1개 임포트
-7. **[feat] Prisma 초기 schema + 1차 migration** — `type:feat` `area:db` `week:2` `prio:p1`
-   - User / Session / Participation, unique(sessionId, userId)
-8. **[feat] Supabase 매직링크 로그인** — `type:feat` `area:auth` `week:2` `prio:p1`
-   - `/login`, 로그인 후 `/sessions` 리다이렉트, 미로그인 보호 페이지 처리
-9. **[feat] 세션 등록 (`/sessions/new`)** — `type:feat` `area:ui` `area:db` `week:2` `prio:p1`
-   - 날짜·장소·시간·날씨·사진 + 참여자 N명 × (거리, 기록) 일괄 저장
-10. **[feat] 세션 상세 (`/sessions/[id]`)** — `type:feat` `area:ui` `week:2` `prio:p1`
-    - 사진, 참여자 표(페이스 자동 계산), 코멘트
-11. **[feat] 세션 아카이브 리스트 (`/sessions`)** — `type:feat` `area:ui` `week:2` `prio:p1`
-    - 최신순 카드, 사진 썸네일, 페이지네이션 또는 더보기
-12. **[feat] 단체사진 업로드 (Supabase Storage)** — `type:feat` `area:infra` `week:2` `prio:p1`
-    - 클라이언트 리사이즈(1600px) 후 업로드, 실패 시 에러 표시
-
-### Week 3 — 완성도 / Stretch
-
-13. **[feat] 멤버 페이지 + 누적 거리/페이스 추이** — `type:feat` `area:ui` `week:3` `prio:p2`
-14. **[feat] 검색·필터 (장소·멤버·기간)** — `type:feat` `area:ui` `week:3` `prio:p2`
-15. **[feat] OG 이미지 (단체사진) + PWA 매니페스트** — `type:feat` `area:ui` `week:3` `prio:p2`
-
----
-
-## 한 번에 생성하는 bash 스크립트 (gh 인증 후 실행)
-
-```bash
-# 사전: gh auth login 으로 인증 완료된 상태여야 함
-cd "$(git rev-parse --show-toplevel)"
-bash scripts/bootstrap-issues.sh
-```
-
-스크립트 본체는 [`scripts/bootstrap-issues.sh`](../scripts/bootstrap-issues.sh).
+- **Week 2 P1**: #5, #6, #7(edit), #9(edit), #10(edit), #11, N-1, N-2, N-3, N-4, N-5, N-6
+- **Week 2 P2**: N-7
+- **Week 3 P2**: #13, #14(edit), #15
