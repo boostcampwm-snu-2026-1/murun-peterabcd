@@ -1,7 +1,12 @@
 // 뮤런 데이터 모델. 권한 매트릭스는 docs/wiki/03-Screen-Flow.md §5 참조.
 //
 // SQLite는 enum 미지원이라 Role 은 String 으로 저장하고,
-// lib 레벨에서 zod 로 검증한다 (lib/auth.ts 에서 type Role = "MEMBER" | "ADMIN").
+// lib 레벨에서 검증한다 ("MEMBER" | "ADMIN").
+//
+// User / Account / VerificationToken 모델은 Auth.js v5 Prisma Adapter 표준을
+// 따른다 (https://authjs.dev/getting-started/adapters/prisma).
+// Auth.js 의 Session 모델은 우리 도메인 Session 과 이름 충돌 + 우리는 JWT 전략을
+// 쓰므로 추가하지 않는다.
 
 generator client {
   provider      = "prisma-client-js"
@@ -15,14 +20,15 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// User
+// Auth.js standard models
 // ---------------------------------------------------------------------------
+
 model User {
-  id           String   @id @default(cuid())
-  googleSub    String   @unique
-  email        String   @unique
-  name         String
-  avatarUrl    String?
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
 
   // 화이트리스트 가입 승인
   approved     Boolean   @default(false)
@@ -31,26 +37,56 @@ model User {
   approvedBy   User?     @relation("Approver", fields: [approvedById], references: [id])
   approves     User[]    @relation("Approver")
 
-  // "MEMBER" | "ADMIN"  — Prisma SQLite enum 미지원으로 String 사용. zod 로 검증.
-  role         String   @default("MEMBER")
+  // "MEMBER" | "ADMIN"  — SQLite는 enum 미지원이라 String. lib 에서 검증.
+  role         String    @default("MEMBER")
 
   joinedAt     DateTime  @default(now())
 
+  accounts       Account[]
   hostedSessions Session[]       @relation("Host")
   participations Participation[]
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 // ---------------------------------------------------------------------------
-// Session — 그날 운동(게시글)
+// 도메인 모델 — Session (그날 운동, 게시글)
 // ---------------------------------------------------------------------------
+
 model Session {
   id             String    @id @default(cuid())
-  date           DateTime               // 활동일 (시각은 startTime 으로 별도 표시)
-  startTime      String?                // "19:30" 같은 표시용 문자열
+  date           DateTime              // 활동일 (시각은 startTime 으로 별도 표시)
+  startTime      String?               // "19:30" 같은 표시용 문자열
   location       String
-  weather        String?                // 자유 텍스트 (Week 2)
-  groupPhotoPath String?                // uploads/yyyy/mm/<cuid>.<ext>
-  notes          String?                // 코스 메모
+  weather        String?               // 자유 텍스트
+  groupPhotoPath String?               // uploads/yyyy/mm/<cuid>.<ext>
+  notes          String?               // 코스 메모
 
   hostId         String
   host           User      @relation("Host", fields: [hostId], references: [id])
@@ -65,8 +101,9 @@ model Session {
 }
 
 // ---------------------------------------------------------------------------
-// Participation — 그날 본인 행(댓글에 해당)
+// 도메인 모델 — Participation (본인 행, 댓글에 해당)
 // ---------------------------------------------------------------------------
+
 model Participation {
   id          String   @id @default(cuid())
   sessionId   String

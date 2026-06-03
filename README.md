@@ -52,10 +52,36 @@ PR 규칙:
 
 ```bash
 corepack enable
-pnpm install
-cp .env.example .env.local      # 후속 PR에서 키 채워짐
+pnpm install                    # postinstall에서 prisma generate 자동 실행
+cp .env.example .env.local      # AUTH_SECRET / Google OAuth 채워 넣기
+pnpm db:migrate                 # SQLite 마이그레이션 적용 (./data/murun.db)
 pnpm dev                        # http://localhost:3000
 ```
+
+### 첫 관리자 부트스트랩 (1회)
+
+본인 SNU 계정으로 한 번 로그인하면 `User` 행이 `approved=false`로 자동 생성됨. 그 뒤 SQL로 직접 본인을 ADMIN + approved 로 승격.
+
+```bash
+pnpm db:studio                  # 또는 sqlite3 ./data/murun.db
+# User 테이블에서 본인 email을 찾아 다음으로 수정:
+#   approved   → 1
+#   role       → "ADMIN"
+#   approvedAt → 현재 시각
+```
+
+그 다음부턴 `/admin/members` 에서 다른 부원을 UI로 승인.
+
+### Google OAuth 발급
+
+[Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → **Create Credentials → OAuth 2.0 Client ID**.
+
+- Application type: Web application
+- Authorized redirect URIs:
+  - `http://localhost:3000/api/auth/callback/google`
+  - (배포 후) `https://<도메인>/api/auth/callback/google`
+
+발급된 client ID/secret 을 `.env.local` 의 `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` 에 넣기. `AUTH_SECRET` 은 `openssl rand -base64 32` 로 생성.
 
 체크:
 
