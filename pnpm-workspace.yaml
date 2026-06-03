@@ -1,6 +1,20 @@
-allowBuilds:
-  sharp: false
-  unrs-resolver: false
+# Use flat node_modules layout (npm-style) instead of pnpm's default isolated
+# layout. Prisma's generated client lookup path assumes flat hoisting.
+# See https://github.com/prisma/prisma/issues/14790
+nodeLinker: hoisted
+
+# Native build scripts policy (pnpm 10+ blocks by default).
+# Allow only what we explicitly need and review.
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver
+  - prisma
+  - "@prisma/engines"
+  - "@prisma/client"
+
+allowBuilds:
+  sharp: true              # next/image server-side webp/avif
+  unrs-resolver: true      # eslint-config-next module resolver
+  prisma: true             # postinstall: prisma engine fetch
+  "@prisma/engines": true  # same
+  "@prisma/client": true   # postinstall: generate client into node_modules/.prisma

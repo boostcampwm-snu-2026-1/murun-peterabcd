@@ -13,6 +13,17 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   outputFileTracingRoot: __dirname,
+  // Prisma 의 generated client (.prisma/client) 와 쿼리 engine binary 를
+  // standalone 산출물에 포함시킨다. Next 의 자동 tracing 은 dynamic require 를
+  // 다 잡지 못한다.
+  outputFileTracingIncludes: {
+    "/**": [
+      "./node_modules/.prisma/client/**",
+      "./node_modules/@prisma/client/**",
+    ],
+  },
+  // PrismaClient 가 Next 의 bundler 에 의해 traced 되지 않도록 external 처리.
+  serverExternalPackages: ["@prisma/client", ".prisma/client"],
 };
 
 export default nextConfig;
