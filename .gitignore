@@ -41,6 +41,7 @@ Thumbs.db
 
 # Prisma generated
 prisma/migrations/dev.db*
+prisma/dev.db*
 
 # Deploy env (host-only)
 deploy/.env

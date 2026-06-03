@@ -1,0 +1,87 @@
+// 뮤런 데이터 모델. 권한 매트릭스는 docs/wiki/03-Screen-Flow.md §5 참조.
+//
+// SQLite는 enum 미지원이라 Role 은 String 으로 저장하고,
+// lib 레벨에서 zod 로 검증한다 (lib/auth.ts 에서 type Role = "MEMBER" | "ADMIN").
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  output        = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
+model User {
+  id           String   @id @default(cuid())
+  googleSub    String   @unique
+  email        String   @unique
+  name         String
+  avatarUrl    String?
+
+  // 화이트리스트 가입 승인
+  approved     Boolean   @default(false)
+  approvedById String?
+  approvedAt   DateTime?
+  approvedBy   User?     @relation("Approver", fields: [approvedById], references: [id])
+  approves     User[]    @relation("Approver")
+
+  // "MEMBER" | "ADMIN"  — Prisma SQLite enum 미지원으로 String 사용. zod 로 검증.
+  role         String   @default("MEMBER")
+
+  joinedAt     DateTime  @default(now())
+
+  hostedSessions Session[]       @relation("Host")
+  participations Participation[]
+}
+
+// ---------------------------------------------------------------------------
+// Session — 그날 운동(게시글)
+// ---------------------------------------------------------------------------
+model Session {
+  id             String    @id @default(cuid())
+  date           DateTime               // 활동일 (시각은 startTime 으로 별도 표시)
+  startTime      String?                // "19:30" 같은 표시용 문자열
+  location       String
+  weather        String?                // 자유 텍스트 (Week 2)
+  groupPhotoPath String?                // uploads/yyyy/mm/<cuid>.<ext>
+  notes          String?                // 코스 메모
+
+  hostId         String
+  host           User      @relation("Host", fields: [hostId], references: [id])
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  participations Participation[]
+
+  @@index([date])
+  @@index([hostId])
+}
+
+// ---------------------------------------------------------------------------
+// Participation — 그날 본인 행(댓글에 해당)
+// ---------------------------------------------------------------------------
+model Participation {
+  id          String   @id @default(cuid())
+  sessionId   String
+  userId      String
+
+  distanceKm  Float?
+  durationSec Int?
+  note        String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@index([userId])
+}
