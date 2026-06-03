@@ -46,13 +46,34 @@ PR 규칙:
 | Agent skill | [`.gjc/skills/murun-feature/SKILL.md`](./.gjc/skills/murun-feature/SKILL.md) |
 | 회고 | [`docs/wiki/Retrospective-Week1.md`](./docs/wiki/Retrospective-Week1.md) |
 
-## 5. 빠른 시작 (Week 2 이후 채워짐)
+## 5. 빠른 시작
+
+### 로컬 개발
 
 ```bash
+corepack enable
 pnpm install
-cp .env.example .env.local      # Auth.js / Google OAuth 키, DB 경로
-pnpm prisma migrate dev
-pnpm dev
+cp .env.example .env.local      # 후속 PR에서 키 채워짐
+pnpm dev                        # http://localhost:3000
+```
+
+체크:
+
+```bash
+pnpm typecheck    # tsc --noEmit
+pnpm lint         # eslint .
+pnpm build        # Next.js 빌드 (Windows에선 standalone 비활성)
+pnpm check        # 위 셋 일괄
+```
+
+### 자체 서버 (N100) 배포
+
+[`deploy/README.md`](./deploy/README.md) 참고. 요약:
+
+```bash
+cd deploy
+cp .env.example .env
+docker compose up -d --build
 ```
 
 ## 6. 라이선스

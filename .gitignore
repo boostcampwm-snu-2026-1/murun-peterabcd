@@ -42,8 +42,15 @@ Thumbs.db
 # Prisma generated
 prisma/migrations/dev.db*
 
-# Vercel
-.vercel
+# Deploy env (host-only)
+deploy/.env
+deploy/.env.*
+!deploy/.env.example
+
+# Local SQLite / uploads (if dev runs without docker volumes)
+data/
+uploads/
+tmp/
 
 # Runtime/agent state
 .gjc/state/
