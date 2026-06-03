@@ -4,99 +4,169 @@
 
 | 영역 | 선택 | 한 줄 이유 |
 |------|------|------------|
-| 언어 | TypeScript | 풀스택 단일 언어. 타입으로 Agent 실수를 잡는다. |
-| 프레임워크 | **Next.js 15 (App Router)** | 풀스택 단일 배포물, Server Action으로 API 보일러플레이트 제거. |
-| 스타일 | **Tailwind CSS + shadcn/ui** | 디자인 결정 비용 최소화. 컴포넌트 코드를 직접 갖고 있어 Agent가 수정 가능. |
+| 언어 | TypeScript | 풀스택 단일 언어. 타입으로 Agent 실수 차단. |
+| 프레임워크 | **Next.js 15 (App Router, standalone output)** | Server Action·`next/image`·OG 이미지가 본 도메인과 맞음. Vercel 없이도 단일 Node 프로세스로 동작. |
+| 스타일 | **Tailwind CSS + shadcn/ui** | 컴포넌트 코드를 repo가 직접 갖고 있어 Agent가 수정 가능. |
 | 폼/검증 | **react-hook-form + zod** | 클라이언트/서버 동일 스키마. |
-| DB | **PostgreSQL (Supabase)** | 무료 티어, 백업, SQL 표준. |
-| ORM | **Prisma** | 타입 안전, migration이 Agent에게도 명확. |
-| 인증 | **Supabase Auth** (매직링크 우선, Discord OAuth 후순위) | 비밀번호 관리 위험 제거. 동아리 인증 흐름과 맞음. |
-| 스토리지 (사진) | **Supabase Storage** | DB와 같은 콘솔에서 권한 정책 관리. |
-| 차트 | **Recharts** | 가벼움, Week 3 stretch용. |
-| 배포 | **Vercel** | GitHub push → 자동 배포. 무료. |
-| 패키지 매니저 | **pnpm** | 빠르고 디스크 효율 + Next 공식 친화. |
-| 테스트 | **Vitest + Playwright(스모크 1~2개만)** | unit은 Vitest, 핵심 시나리오만 e2e. |
-| 코드 품질 | **ESLint (next/core-web-vitals) + Prettier** | 기본값 그대로. |
-| CI | **GitHub Actions** (lint + typecheck + build) | PR → dev 머지 전 통과 필수. |
+| DB | **SQLite (파일)** | 별도 서버 프로세스 0. 백업 = 파일 1개 복사. 동아리 규모에 과한 게 없음. |
+| ORM | **Prisma** | 타입 안전. SQLite provider 한 줄로 전환. |
+| 인증 | **Auth.js v5 + Google OAuth (`hd: snu.ac.kr` 강제)** | 부원이 이미 가진 SNU 구글 계정 그대로. 이메일 발송 SaaS 0. |
+| 가입 정책 | **화이트리스트(approved=true)** + 관리자 승인 | OAuth 통과해도 관리자가 승인해야 입장. |
+| 사진 저장 | **로컬 볼륨 마운트** (`/var/lib/murun/uploads`) | DB와 분리. 원본 그대로 보존. |
+| 이미지 최적화 | **`next/image` + sharp** (서빙 시 webp 변환·디스크 캐시) | 원본 품질 손상 0. N100 CPU 압박 미미. |
+| 호스팅 | **자체 N100 서버** | 부트캠프 후에도 운영 가능. SaaS 의존 최소화. |
+| 컨테이너 | **Docker + docker compose** | staging/prod를 같은 이미지로 동시에. 데이터는 호스트 볼륨. |
+| 리버스 프록시 | **Caddy** | Let's Encrypt 자동, Caddyfile 10줄. |
+| 도메인/HTTPS | **(Week 3) duckdns + Caddy 자동 인증서** | 당장은 IP:port + 로컬 hosts. |
+| 차트 | **Recharts** | Week 3 stretch용. |
+| 테스트 | **Vitest** (필요 시 Playwright 스모크 1개) | 도메인 함수만 단위, e2e는 욕심내지 않음. |
+| 코드 품질 | **ESLint + Prettier** | 기본값. |
+| CI | **GitHub Actions**: lint + typecheck + build → ghcr.io push | N100은 pull만. |
+| CD | **GH Actions → SSH → `docker compose pull && up -d`** | staging은 자동, prod는 수동 승인 후. |
+| 패키지 매니저 | **pnpm** | Next 친화, 디스크 효율. |
+| 모니터링 (선택) | Uptime Kuma + `docker logs` | 운영 부담 최소화. |
+| 백업 | cron + restic → 외부 디스크 (Week 3) | DB 파일 + uploads 디렉터리만. |
 
-## 2. 왜 이 조합인가 (긴 버전)
+## 2. 큰 결정 4개 — 왜 그렇게 갔는가
 
-### 2.1 단일 언어/단일 런타임 원칙
+### 2.1 자체 서버(N100) vs SaaS (Vercel + Supabase)
 
-3주 + 솔로 + Agent 협업 환경에서 **언어가 둘 이상이면 컨텍스트 비용이 폭발**한다. TypeScript로 풀스택을 통일하고, Server Action으로 별도 백엔드 서비스를 두지 않는다. Agent에게 "타입이 깨졌어"라고만 말해도 문제 지점이 좁혀진다.
+**선택: 자체 서버.** SaaS 잔존은 GitHub 1개뿐.
 
-### 2.2 Next.js를 고른 이유 (vs Vite + Hono / SvelteKit / Remix)
+| 항목 | SaaS 조합 | 자체 서버 |
+|------|-----------|-----------|
+| 셋업 | 1시간 | 반나절~1일 |
+| 운영비 | 무료티어 한도 위험 | 0 (서버 sunk cost) |
+| 데이터 주권 | 외부 사업자 | 본인 |
+| 학습 가치 | 메타프레임워크 | 풀스택 + 인프라 |
+| 단점 | 락인 | SPOF, 인증서/포트포워딩 운영 부담 |
 
-- **App Router + Server Action**: 인증된 form submit → DB 저장이 API route 없이 단일 함수로 끝난다. 세션 등록처럼 단발성 mutation이 많은 이번 도메인과 잘 맞는다.
-- **Vercel 배포 비용 0**, preview deploy가 PR마다 붙는다. → 사람 리뷰 + Agent QA에 직접 활용.
-- **이미지 컴포넌트 (`next/image`)**: 단체사진 썸네일을 자동 최적화. Lighthouse 점수 확보에 유리.
+부트캠프 요구("3주 이후에도 지속가능한 소프트웨어 구조") + 동아리 내부용이라는 도메인 + 부원들이 외부 사업자에 사진/페이스 기록을 맡기지 않아도 되는 점 → 자체 서버가 명확.
 
-### 2.3 Supabase를 고른 이유 (vs PlanetScale + Auth.js, Firebase)
+### 2.2 SQLite vs Postgres
 
-- DB·Auth·Storage가 한 콘솔에 있다 → 운영 시 디버깅 동선이 짧다.
-- Postgres이므로 추후 self-host로 이전 가능 (lock-in 낮음).
-- RLS(Row Level Security)로 "본인 세션만 수정" 같은 권한을 DB 수준에서 강제 → Agent가 비즈니스 로직에서 빠뜨려도 1차 안전망.
+**선택: SQLite.** 동아리 30~50명 + 주 1회 쓰기 트래픽이라면 Postgres 컨테이너는 과함.
 
-### 2.4 Prisma vs Drizzle
+- 컨테이너 1개 줄어듦 (운영 동선 단순)
+- 백업 = `cp murun.db murun.db.bak`
+- Prisma 지원 동일, schema 표현력 손해 없음
+- 미래에 Postgres 필요해지면 provider 한 줄 + migration 재실행으로 이전 가능
 
-- **Prisma 선택.** schema.prisma 한 파일이 데이터 모델의 **단일 진실의 원천**이 되며, Agent가 보고 작업하기에 가장 명확.
-- 단점(쿼리 빌더 한계)은 이 규모에선 문제 없음.
+### 2.3 Next.js 15 vs Vite + (Hono/Express)
 
-### 2.5 shadcn/ui를 고른 이유
+**선택: Next.js 유지.** 결정 요인은 우리 도메인 특성:
 
-- "디자인 결정을 미루기 위한 라이브러리"가 아니라, **컴포넌트 코드를 내 repo에 복사**해서 갖는 구조.
-- → Agent가 그 컴포넌트 자체를 수정/확장할 수 있다. (블랙박스 의존성 제거)
-- 디자인 시스템을 직접 만들 시간/이유가 없음.
+- **OG 이미지(카톡 공유)**: `opengraph-image.tsx` 한 파일이면 끝. SPA로는 별도 라우트·satori 직접.
+- **`next/image`**: 단체사진 갤러리에 자동 webp/srcset/lazy. 직접 만들면 N100에서 안 만들 가능성 높음.
+- **Server Action**: "1분 입력" 폼에 boilerplate 절반.
+- **자체 호스팅 친화**: `output: 'standalone'` 모드 → 단일 `node server.js` + 마운트. Vercel 없이 동일하게 동작.
+- 트레이드오프: FE/BE 경계 흐림, Server/Client component 학습 비용. 받아들임.
 
-## 3. 채택하지 않은 것
+### 2.4 인증: Google OAuth + 화이트리스트 (vs 매직링크 / 단일 비번)
 
-| 후보 | 채택 안 한 이유 |
-|------|----------------|
-| Native 모바일 앱 (RN/Expo) | 3주 + 솔로 + 동아리 내부용. PWA로 충분. |
-| 마이크로서비스 / 별도 API 서버 | 운영 비용 ↑, 가치 ↓. |
-| 자체 인증 (이메일 + 비밀번호) | 비밀번호 관리/리셋 메일 인프라 부담. |
-| GraphQL | 클라이언트 한 종류, 화면 수 적음. tRPC도 Server Action 있으면 굳이 불필요. |
-| Tanstack Query | App Router에서는 서버 컴포넌트 + Server Action으로 대부분 해결. 필요시 일부 페이지에만 도입. |
+**선택: Auth.js v5 Google Provider + `hd: snu.ac.kr` + User.approved 화이트리스트.**
 
-## 4. 환경 변수 초안
+- 부원 모두 SNU 구글 계정을 이미 가짐 → 신규 가입 마찰 0
+- 이메일 발송 SaaS(Resend) 불필요 → SaaS 잔존 0
+- `hd` 파라미터로 @snu.ac.kr 도메인 1차 필터, 관리자 승인이 2차 필터
+- "본인 인증된 사용자가 본인 행을 쓴다"는 게시글-댓글 모델에 필수
+
+콜백 URL은 로컬 = `http://localhost:3000/api/auth/callback/google`, staging = duckdns 연결 후 등록. 도메인 없는 동안엔 로컬 OAuth만 동작 → MVP 진입 후순위는 OAuth 등록.
+
+## 3. 환경 변수 초안
 
 ```dotenv
 # .env.example
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=     # 서버 전용
-DATABASE_URL=                  # Prisma용 (pooled)
-DIRECT_URL=                    # Prisma migration용
+DATABASE_URL=file:./data/murun.db
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_HD=snu.ac.kr          # 이메일 도메인 강제
+UPLOADS_DIR=./uploads
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-## 5. 폴더 구조 초안 (Week 2 진입 시점)
+## 4. 폴더 구조 초안 (Week 2 진입 시점)
 
 ```
 murun-peterabcd/
 ├─ app/
-│  ├─ (public)/           # 비로그인 접근 가능
-│  ├─ (app)/              # 로그인 필요
+│  ├─ (auth)/login/page.tsx
+│  ├─ pending/page.tsx          # 가입 승인 대기
+│  ├─ (app)/                    # 로그인 + approved 필요
 │  │  ├─ sessions/
-│  │  │  ├─ page.tsx                # 아카이브 리스트
-│  │  │  ├─ new/page.tsx            # 세션 등록
-│  │  │  └─ [id]/page.tsx           # 세션 상세
+│  │  │  ├─ page.tsx
+│  │  │  ├─ new/page.tsx
+│  │  │  ├─ [id]/page.tsx
+│  │  │  └─ [id]/opengraph-image.tsx
 │  │  ├─ runners/[id]/page.tsx
-│  │  └─ me/page.tsx
-│  ├─ login/page.tsx
+│  │  ├─ me/page.tsx
+│  │  └─ admin/members/page.tsx # 승인 페이지
+│  ├─ api/auth/[...nextauth]/route.ts
 │  ├─ layout.tsx
 │  └─ globals.css
 ├─ components/
-│  ├─ ui/                 # shadcn 복사본
-│  └─ session/            # 도메인 컴포넌트
+│  ├─ ui/                       # shadcn 복사본
+│  └─ session/
 ├─ lib/
-│  ├─ db.ts               # Prisma client
-│  ├─ supabase/           # client/server helpers
-│  ├─ auth.ts
-│  └─ pace.ts             # 페이스 계산 등 순수 함수
+│  ├─ db.ts                     # Prisma client
+│  ├─ auth.ts                   # Auth.js config + helpers
+│  ├─ guard.ts                  # requireApproved() 등
+│  ├─ pace.ts                   # 페이스 계산 (순수 함수)
+│  └─ uploads.ts                # 파일 저장 헬퍼
 ├─ prisma/
 │  └─ schema.prisma
+├─ deploy/
+│  ├─ Dockerfile
+│  ├─ docker-compose.yml        # caddy + app
+│  ├─ Caddyfile
+│  └─ deploy.sh
 ├─ docs/wiki/
+├─ .github/workflows/
+│  ├─ ci.yml                    # PR: lint + typecheck + build
+│  └─ deploy.yml                # dev → staging, main → prod
 ├─ .gjc/
 └─ tests/
 ```
+
+## 5. 배포 / Docker 구성
+
+```
+┌────────────────── N100 호스트 ───────────────────┐
+│                                                 │
+│  caddy 컨테이너   (80/443 노출, 자동 HTTPS)      │
+│      └─→ app:3000 으로 프록시                    │
+│                                                 │
+│  app 컨테이너     (Next.js standalone)           │
+│      ├─ 볼륨: /data    → /var/lib/murun/db      │
+│      │  (SQLite 파일 murun.db)                  │
+│      └─ 볼륨: /uploads → /var/lib/murun/uploads │
+│         (단체사진 원본 + next/image 캐시)        │
+│                                                 │
+│  DB 컨테이너 없음 — SQLite는 app 안에서 동작      │
+└─────────────────────────────────────────────────┘
+        ▲
+        │ GitHub Actions가 SSH로:
+        │   docker compose pull && up -d
+        │ staging: dev push → 자동
+        │ prod:    main push → 수동 승인 후
+```
+
+- staging/prod 분리: 같은 이미지를 `-p murun-staging` / `-p murun-prod` 다른 project name으로 동시에. 볼륨·포트·서브도메인 전부 분리.
+- 빌드는 GitHub Actions에서 → `ghcr.io/boostcampwm-snu-2026-1/murun:<sha>` 로 push. N100은 pull만.
+
+## 6. 채택하지 않은 것
+
+| 후보 | 채택 안 한 이유 |
+|------|----------------|
+| Vercel | 자체 서버 도입과 충돌 |
+| Supabase | 자체 호스팅 + Auth.js로 대체 |
+| Resend / SES (이메일) | Google OAuth 채택으로 이메일 발송 불필요 |
+| Nginx | Caddy 대비 인증서 자동화에 추가 작업 (certbot + cron) 필요. 솔로 운영에서 가치 작음. |
+| Traefik | 컨테이너 자동 감지는 서비스 1~2개 규모에선 셋업 비용 > 가치. |
+| Postgres 컨테이너 | SQLite로 충분. 미래 이전 가능. |
+| Native 모바일 앱 | PWA로 충분. |
+| Drizzle ORM | Prisma의 schema 단일 진실 원천이 Agent 협업에 더 명확. |
+| GraphQL / tRPC | Server Action으로 대부분 해결. |
+| Matrix/IRC/Discord 로그인 | 본 동아리는 단톡방 중심. SNU 구글 계정이 가장 자연스러움. |

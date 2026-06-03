@@ -1,9 +1,23 @@
 #!/usr/bin/env bash
-# Bootstrap initial labels and issues for murun-peterabcd.
-# Run from repo root after `gh auth login`.
-#
-# Idempotent for labels (skips if exists). Issues will be re-created if
-# you run twice — check the issue list before re-running.
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  DEPRECATED — DO NOT RUN.                                                ║
+# ║                                                                          ║
+# ║  This script was used once on 2026-05-31 to seed the initial 15 issues. ║
+# ║  The stack and feature model has since changed (Vercel/Supabase →       ║
+# ║  N100 self-host, magic link → Google OAuth, batch input → host/         ║
+# ║  participant post-comment model). Re-running this script will create    ║
+# ║  duplicate, outdated issues.                                            ║
+# ║                                                                          ║
+# ║  To apply the post-Week-1 changes to the existing 15 issues, use:       ║
+# ║      bash scripts/update-issues.sh                                      ║
+# ║                                                                          ║
+# ║  Kept for git history and as a reference of the original Week-1 task    ║
+# ║  decomposition. See docs/initial-issues.md for the current state.       ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+echo "scripts/bootstrap-issues.sh is DEPRECATED. Use scripts/update-issues.sh." >&2
+exit 1
+
+# --- ORIGINAL SCRIPT BELOW (left as historical reference) ---
 
 set -euo pipefail
 

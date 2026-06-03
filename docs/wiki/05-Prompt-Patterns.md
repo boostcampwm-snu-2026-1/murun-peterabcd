@@ -14,7 +14,7 @@
 
 ```
 [컨텍스트]
-- 이 repo는 Next.js 15 App Router + Prisma + Supabase. 자세한 건 docs/wiki/02-Tech-Stack.md.
+- 이 repo는 Next.js 15 App Router + Prisma + SQLite + Auth.js v5. 자세한 건 docs/wiki/02-Tech-Stack.md.
 - 관련 스키마: prisma/schema.prisma 의 Session, Participation.
 - 기존 유사 패턴: app/(app)/sessions/new/page.tsx
 - 사용자 스토리: .gjc/specs/<feature>.md
@@ -44,7 +44,7 @@
 
 ```
 [증상]
-/sessions/new 에서 [저장] 누르면 500. Vercel 로그에 "PrismaClientValidationError".
+/sessions/new 에서 [저장] 누르면 500. `docker logs murun-app` 에 "PrismaClientValidationError".
 
 [재현]
 1. 로그인
@@ -127,13 +127,13 @@ Session 에 distanceTotalKm Float? 필드 추가. (참여자 distance 합산 캐
 ```
 [목적]
 Next.js App Router 에서 단체사진 업로드를 Server Action 으로 받을 때
-1) 파일 크기 제한
-2) Supabase Storage 로의 안전한 업로드 흐름 (서명 URL vs server에서 forward)
+1) 파일 크기 제한 (현재 15MB)
+2) 로컬 디스크 저장 흐름 (서버에서 받아 직접 fs.writeFile vs streaming)
 중 어느 쪽을 우리가 택해야 하는지 결정하고 싶다.
 
 [요청]
 - 양쪽 흐름의 장단점 4줄씩
-- 우리 스택(이 repo)에서 권장하는 것 1개와 이유
+- 우리 스택(이 repo, N100 + 로컬 볼륨)에서 권장하는 것 1개와 이유
 - 참고할 만한 공식 문서/예제 링크 (가짜 링크 만들지 마라)
 - 결정 후 영향받는 파일 목록
 
