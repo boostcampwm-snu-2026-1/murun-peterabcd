@@ -2,20 +2,25 @@
 
 import { useRef } from "react";
 
-import { uploadSessionPhoto } from "../photo-actions";
+
+
+type Props = {
+  sessionId: number;
+  /**
+   * useActionState 가 만들어준 formAction. 부모(PhotoSection) 의 alert/pending 상태와
+   * 공유하기 위해 props 로 받음.
+   */
+  formAction: (formData: FormData) => void;
+};
 
 /**
  * 사진 우측 [교체] 버튼. 파일 선택 즉시 form auto-submit.
- * server action 은 같은 uploadSessionPhoto 를 그대로 호출 — DB 가 알아서 update.
+ * upload action 은 PhotoSection 의 useActionState 가 관리 — 결과/pending 이 한 곳에.
  */
-export function PhotoReplaceButton({ sessionId }: { sessionId: number }) {
+export function PhotoReplaceButton({ sessionId, formAction }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   return (
-    <form
-      ref={formRef}
-      action={uploadSessionPhoto}
-      className="inline-flex"
-    >
+    <form ref={formRef} action={formAction} className="inline-flex">
       <input type="hidden" name="sessionId" value={sessionId} />
       <label className="cursor-pointer text-muted-foreground underline underline-offset-4 hover:text-foreground">
         교체
@@ -34,3 +39,4 @@ export function PhotoReplaceButton({ sessionId }: { sessionId: number }) {
     </form>
   );
 }
+
