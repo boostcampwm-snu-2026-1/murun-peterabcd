@@ -31,9 +31,11 @@ export default async function HomePage() {
             새 세션 만들기
           </Button>
         </Link>
-        <p className="text-center text-xs text-muted-foreground">
-          아카이브 리스트는 다음 PR에서 추가됩니다.
-        </p>
+        <Link href="/sessions" className="w-full">
+          <Button className="w-full" variant="outline" size="lg">
+            전체 아카이브
+          </Button>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">
