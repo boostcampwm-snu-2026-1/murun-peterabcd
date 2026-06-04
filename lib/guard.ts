@@ -53,7 +53,7 @@ export async function requireAdmin(): Promise<SessionUser> {
  * 호스트만 보이는 UI 요소를 다루는 server action 의 첫 줄에서 호출.
  */
 export async function requireHostOrAdmin(
-  sessionId: string,
+  sessionId: number,
 ): Promise<SessionUser> {
   const user = await requireApproved();
   if (user.role === "ADMIN") return user;

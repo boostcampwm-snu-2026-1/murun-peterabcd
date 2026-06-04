@@ -21,8 +21,9 @@ type PageProps = {
 
 export default async function SessionDetailPage({ params }: PageProps) {
   const user = await requireApproved();
-  const { id } = await params;
-
+  const { id: idParam } = await params;
+  const id = Number.parseInt(idParam, 10);
+  if (!Number.isFinite(id) || id <= 0) notFound();
   const sessionRow = await db.session.findUnique({
     where: { id },
     include: {

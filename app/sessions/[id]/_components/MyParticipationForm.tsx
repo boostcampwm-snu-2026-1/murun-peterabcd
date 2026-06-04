@@ -7,7 +7,7 @@ import { upsertParticipation, deleteParticipation } from "../actions";
 import { splitDurationSec } from "@/lib/pace";
 
 type Props = {
-  sessionId: string;
+  sessionId: number;
   existing: {
     distanceKm: number | null;
     durationSec: number | null;
