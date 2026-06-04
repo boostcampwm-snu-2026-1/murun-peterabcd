@@ -49,43 +49,55 @@ export function formatDistanceKm(km: number | null | undefined): string {
 }
 
 /**
- * 폼의 분/초 두 input → 초. 둘 다 null/빈값이면 null, 그 외엔 합산.
- * 음수/NaN/너무 큰 값(>24시간)은 null.
+ * 폼 입력 검증 결과.
+ *   - { value: number, error: null }  → 정상 입력값
+ *   - { value: null,   error: null }  → 빈 값 (optional 필드 OK)
+ *   - { value: null,   error: "..." } → 유효성 실패, 사용자에게 보일 메시지
  */
-export function parseDurationInput(
-  minutesRaw: FormDataEntryValue | null | undefined,
-  secondsRaw: FormDataEntryValue | null | undefined,
-): number | null {
-  const min = toNonNegInt(minutesRaw);
-  const sec = toNonNegInt(secondsRaw);
-  if (min == null && sec == null) return null;
-  const total = (min ?? 0) * 60 + (sec ?? 0);
-  if (total <= 0) return null;
-  if (total > 24 * 3600) return null;
-  return total;
-}
+export type ParsedNumber =
+  | { value: number; error: null }
+  | { value: null; error: null }
+  | { value: null; error: string };
+
+type ParseOpts = {
+  min: number;
+  max: number;
+  field: string;
+  /** true 면 정수 강제 (10진 소수점 거부). */
+  integer?: boolean;
+};
 
 /**
- * 폼의 거리 input → km (소수점 허용). 빈값이면 null. 음수/NaN/>1000 → null.
+ * Optional number 입력 검증. 빈 문자열/null 은 OK (value=null, error=null).
+ * 문자/음수/범위 밖은 한국어 에러 메시지.
  */
-export function parseDistanceInput(
+export function parseOptionalNumber(
   raw: FormDataEntryValue | null | undefined,
-): number | null {
-  if (raw == null) return null;
+  opts: ParseOpts,
+): ParsedNumber {
+  if (raw == null) return { value: null, error: null };
   const s = String(raw).trim();
-  if (!s) return null;
-  const n = Number.parseFloat(s);
-  if (!Number.isFinite(n) || n <= 0 || n > 1000) return null;
-  return n;
-}
-
-function toNonNegInt(v: FormDataEntryValue | null | undefined): number | null {
-  if (v == null) return null;
-  const s = String(v).trim();
-  if (!s) return null;
-  const n = Number.parseInt(s, 10);
-  if (!Number.isFinite(n) || n < 0) return null;
-  return n;
+  if (!s) return { value: null, error: null };
+  const n = Number(s);
+  if (!Number.isFinite(n)) {
+    return { value: null, error: `${opts.field}는 숫자만 입력하세요.` };
+  }
+  if (opts.integer && !Number.isInteger(n)) {
+    return { value: null, error: `${opts.field}는 정수만 입력하세요.` };
+  }
+  if (n < opts.min) {
+    return {
+      value: null,
+      error: `${opts.field}는 ${opts.min} 이상이어야 합니다.`,
+    };
+  }
+  if (n > opts.max) {
+    return {
+      value: null,
+      error: `${opts.field}는 ${opts.max} 이하여야 합니다.`,
+    };
+  }
+  return { value: n, error: null };
 }
 
 /**

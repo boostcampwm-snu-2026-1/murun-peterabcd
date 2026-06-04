@@ -6,21 +6,45 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireApproved } from "@/lib/guard";
 
-// 폼 입력 스키마. date는 yyyy-MM-dd 문자열로 받고 서버에서 Date 로 변환.
-// startTime 은 "HH:mm" 자유 입력 (검증 느슨하게).
+export type CreateSessionResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+// 폼 입력 스키마. 메시지가 사용자에게 그대로 노출되므로 한국어.
 const createSessionSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "날짜 형식: YYYY-MM-DD"),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "날짜 형식이 올바르지 않습니다 (YYYY-MM-DD)."),
   startTime: z
     .string()
-    .regex(/^\d{2}:\d{2}$/, "시간 형식: HH:MM")
+    .regex(/^\d{2}:\d{2}$/, "시간 형식이 올바르지 않습니다 (HH:MM).")
     .optional()
     .or(z.literal("")),
-  location: z.string().min(1, "장소를 입력하세요").max(120),
-  weather: z.string().max(120).optional().or(z.literal("")),
-  notes: z.string().max(2000).optional().or(z.literal("")),
+  location: z
+    .string()
+    .min(1, "장소를 입력하세요.")
+    .max(120, "장소는 120자 이내로 입력하세요."),
+  weather: z
+    .string()
+    .max(120, "날씨는 120자 이내로 입력하세요.")
+    .optional()
+    .or(z.literal("")),
+  notes: z
+    .string()
+    .max(2000, "메모는 2000자 이내로 입력하세요.")
+    .optional()
+    .or(z.literal("")),
 });
 
-export async function createSession(formData: FormData): Promise<void> {
+/**
+ * 호스트가 새 세션을 만든다.
+ * useActionState 시그니처 — first arg 는 이전 state, 무시.
+ * 성공 시 redirect 가 throw 하므로 ok return 은 type-level 만 도달 가능.
+ */
+export async function createSession(
+  _prev: CreateSessionResult | null,
+  formData: FormData,
+): Promise<CreateSessionResult> {
   const host = await requireApproved();
 
   const parsed = createSessionSchema.safeParse({
@@ -32,15 +56,14 @@ export async function createSession(formData: FormData): Promise<void> {
   });
 
   if (!parsed.success) {
-    // 첫 에러 메시지를 throw — Next 의 error boundary 가 받음.
-    // 폼 측 inline 에러 표시는 다음 PR (react-hook-form 도입 시) 로 미룸.
     const first = parsed.error.issues[0];
-    throw new Error(first?.message ?? "입력값이 올바르지 않습니다");
+    return {
+      ok: false,
+      error: first?.message ?? "입력값이 올바르지 않습니다.",
+    };
   }
 
   const { date, startTime, location, weather, notes } = parsed.data;
-
-  // SQLite 의 DateTime 은 UTC 로 저장. date-only 의미라 시각은 정오로 박아 timezone 어긋남 방지.
   const dateValue = new Date(`${date}T12:00:00Z`);
 
   const created = await db.session.create({
