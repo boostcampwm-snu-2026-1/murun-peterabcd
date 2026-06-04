@@ -2,7 +2,54 @@
 
 자체 N100 호스트에서 Docker Compose 로 띄우는 절차. 사람(호스트)만 본다.
 
-## 1. 첫 배포 (한 번만)
+## 0. CI/CD (자동 배포) 사용 시 (권장)
+
+GitHub Actions 가 dev push → staging, main push → prod 로 자동 배포한다.
+첫 셋업 한 번만 호스트에서 manual init 후, 그 다음부턴 코드만 push 하면 됨.
+
+### 호스트 1회 init
+
+```bash
+# 1) repo clone (한 번만)
+git clone https://github.com/boostcampwm-snu-2026-1/murun-peterabcd.git
+cd murun-peterabcd/deploy
+
+# 2) staging / prod 각각 .env 준비
+cp .env.example .env.staging
+cp .env.example .env.prod
+# (DOMAIN, AUTH_*, GOOGLE_*, DATABASE_URL, NEXT_PUBLIC_APP_URL 채우기)
+
+# 3) ghcr.io pull 인증 (한 번만, repo 가 public 이면 skip 가능)
+echo "<PAT_with_read:packages>" | docker login ghcr.io -u <github_user> --password-stdin
+
+# 4) 첫 가동 (이미지 빌드는 GH Actions 가 대신, 여기선 pull 만)
+docker compose -p murun-staging --env-file .env.staging pull
+docker compose -p murun-staging --env-file .env.staging up -d
+```
+
+### GitHub Actions secrets 등록 (Settings → Secrets and variables → Actions)
+
+| 키 | 값 |
+|----|------|
+| `N100_HOST` | N100 의 공인 IP 또는 DDNS 도메인 |
+| `N100_USER` | SSH 로그인 유저 |
+| `N100_SSH_KEY` | private SSH key 내용 전체 (BEGIN/END 포함). 공개키는 N100 의 `~/.ssh/authorized_keys` 에 등록 |
+
+SSH key 생성 (호스트에서):
+```bash
+ssh-keygen -t ed25519 -C "gh-actions-murun-deploy" -f ~/.ssh/n100_gh_deploy
+cat ~/.ssh/n100_gh_deploy.pub >> ~/.ssh/authorized_keys
+# private key 를 GitHub secret 에 등록:
+gh secret set N100_SSH_KEY < ~/.ssh/n100_gh_deploy
+gh secret set N100_HOST --body "<ip-or-domain>"
+gh secret set N100_USER --body "<user>"
+```
+
+### (옵션) prod environment 보호
+
+main 으로의 자동 배포 전에 수동 승인이 필요하면 Settings → Environments → "prod" 생성 후 "Required reviewers" 본인 추가.
+
+## 1. 수동 배포 (CI/CD 우회) — 첫 배포 또는 디버깅
 
 ```bash
 # 호스트에 git clone
