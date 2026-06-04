@@ -54,6 +54,23 @@ git switch -c feat/<issue-num>-<slug>
 4. `loading.tsx`, `error.tsx`, 빈 상태 처리 누락 없는지 확인
 5. `tests/<feature>.test.ts` 스모크 1개 (도메인 함수 위주, e2e는 욕심내지 않음)
 
+### 4.5 폼/입력이 들어가는 경우 (강제)
+
+새로운 form 또는 사용자 입력 필드를 추가할 때 다음을 **체크 없이 진행 금지**.
+PR #28, #29 의 사고 (silent noop, 더블 클릭 row 중복) 가 이 단계 누락에서 옴.
+
+- [ ] **모든 필드의 negative case** 가 inline alert 로 표시되는가
+  - 빈 입력 (특히 "최소 한 가지" 조건)
+  - 음수 / 범위 밖 (예: 초 60 이상)
+  - 타입 불일치 (숫자 자리에 문자)
+  - 길이 초과
+- [ ] **server action 시그니처** 가 `useActionState` 패턴 (`(prev, formData) => Promise<{ ok, error? }>`)
+- [ ] **client form component** 가 `useActionState` 로 상태 받고 `ErrorAlert` 로 메시지 표시
+- [ ] **submit 버튼** 이 `useFormStatus` 기반 (`SubmitButton`) — pending 중 disabled + 라벨 교체
+- [ ] **중복 생성 방지**: DB 수준 unique constraint (or 트랜잭션) 가 2차 안전망으로 존재
+- [ ] 검증 로직은 **server action 안의 zod 또는 parseOptionalNumber** — client 검증만 의존 X (우회 방지)
+- [ ] (해당 시) 검증 실패 시 입력값이 사라지지 않는지 — 부분 보존이라도 OK
+
 ### 5. Self-check
 [`docs/wiki/06-Checkpoints.md`](../../../docs/wiki/06-Checkpoints.md) 의 7개 항목을 PR 본문에 박은 채로 사용자가 직접 확인하도록 둔다. Agent는 박스를 자기가 채우지 않는다.
 
