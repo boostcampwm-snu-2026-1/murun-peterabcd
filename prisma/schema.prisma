@@ -80,7 +80,7 @@ model VerificationToken {
 // ---------------------------------------------------------------------------
 
 model Session {
-  id             String    @id @default(cuid())
+  id             Int       @id @default(autoincrement())
   date           DateTime              // 활동일 (시각은 startTime 으로 별도 표시)
   startTime      String?               // "19:30" 같은 표시용 문자열
   location       String
@@ -106,7 +106,7 @@ model Session {
 
 model Participation {
   id          String   @id @default(cuid())
-  sessionId   String
+  sessionId   Int
   userId      String
 
   distanceKm  Float?

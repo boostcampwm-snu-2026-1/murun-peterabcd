@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { requireHostOrAdmin } from "@/lib/guard";
 import { deleteUploadedFile, saveUploadedFile } from "@/lib/uploads";
 
-const sessionIdSchema = z.string().min(1).max(40);
+const sessionIdSchema = z.coerce.number().int().positive();
 
 /**
  * 단체사진 업로드. 호스트/ADMIN 만. 기존 사진이 있으면 새 업로드 성공 후 best-effort 로 삭제.

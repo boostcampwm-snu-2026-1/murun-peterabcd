@@ -6,7 +6,7 @@ import { uploadSessionPhoto, removeSessionPhoto } from "../photo-actions";
 import { PhotoReplaceButton } from "./PhotoReplaceButton";
 
 type Props = {
-  sessionId: string;
+  sessionId: number;
   groupPhotoPath: string | null;
   canEdit: boolean;
   altText: string;
@@ -67,11 +67,10 @@ export function PhotoSection({
   );
 }
 
-function UploadForm({ sessionId }: { sessionId: string }) {
+function UploadForm({ sessionId }: { sessionId: number }) {
   return (
     <form
       action={uploadSessionPhoto}
-      encType="multipart/form-data"
       className="flex flex-col gap-2 sm:flex-row sm:items-center"
     >
       <input type="hidden" name="sessionId" value={sessionId} />
@@ -89,7 +88,7 @@ function UploadForm({ sessionId }: { sessionId: string }) {
   );
 }
 
-function RemoveForm({ sessionId }: { sessionId: string }) {
+function RemoveForm({ sessionId }: { sessionId: number }) {
   return (
     <form action={removeSessionPhoto}>
       <input type="hidden" name="sessionId" value={sessionId} />
