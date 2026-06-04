@@ -1,9 +1,10 @@
 // Server Component / Server Action 의 진입점에서 호출하는 인증·권한 가드.
 // 권한 매트릭스는 docs/wiki/03-Screen-Flow.md §5 참조.
 
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export type SessionUser = {
   id: string;
@@ -42,10 +43,25 @@ export async function requireApproved(): Promise<SessionUser> {
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await requireApproved();
   if (user.role !== "ADMIN") {
-    // notFound 대신 403 redirect 도 가능하지만, 운영자 페이지의 존재를
-    // 일반 멤버에게 노출하지 않도록 404 처리.
-    const { notFound } = await import("next/navigation");
     notFound();
   }
+  return user;
+}
+
+/**
+ * 세션의 호스트 본인 또는 ADMIN. 그 외 (다른 승인된 멤버 포함) → notFound().
+ * 호스트만 보이는 UI 요소를 다루는 server action 의 첫 줄에서 호출.
+ */
+export async function requireHostOrAdmin(
+  sessionId: string,
+): Promise<SessionUser> {
+  const user = await requireApproved();
+  if (user.role === "ADMIN") return user;
+  const session = await db.session.findUnique({
+    where: { id: sessionId },
+    select: { hostId: true },
+  });
+  if (!session) notFound();
+  if (session.hostId !== user.id) notFound();
   return user;
 }
