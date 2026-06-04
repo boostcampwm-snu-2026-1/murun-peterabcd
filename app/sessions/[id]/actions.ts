@@ -10,7 +10,7 @@ import {
   parseDurationInput,
 } from "@/lib/pace";
 
-const idSchema = z.string().min(1).max(40);
+const sessionIdSchema = z.coerce.number().int().positive();
 const noteSchema = z.string().max(500).optional().or(z.literal(""));
 
 /**
@@ -20,7 +20,7 @@ const noteSchema = z.string().max(500).optional().or(z.literal(""));
 export async function upsertParticipation(formData: FormData): Promise<void> {
   const user = await requireApproved();
 
-  const parsedSessionId = idSchema.safeParse(formData.get("sessionId"));
+  const parsedSessionId = sessionIdSchema.safeParse(formData.get("sessionId"));
   if (!parsedSessionId.success) {
     throw new Error("Invalid sessionId");
   }
@@ -80,7 +80,7 @@ export async function upsertParticipation(formData: FormData): Promise<void> {
 export async function deleteParticipation(formData: FormData): Promise<void> {
   const user = await requireApproved();
 
-  const parsedSessionId = idSchema.safeParse(formData.get("sessionId"));
+  const parsedSessionId = sessionIdSchema.safeParse(formData.get("sessionId"));
   if (!parsedSessionId.success) {
     throw new Error("Invalid sessionId");
   }

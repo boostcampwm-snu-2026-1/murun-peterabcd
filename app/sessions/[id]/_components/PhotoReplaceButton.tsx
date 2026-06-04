@@ -8,7 +8,7 @@ import { uploadSessionPhoto } from "../photo-actions";
  * 사진 우측 [교체] 버튼. 파일 선택 즉시 form auto-submit.
  * server action 은 같은 uploadSessionPhoto 를 그대로 호출 — DB 가 알아서 update.
  */
-export function PhotoReplaceButton({ sessionId }: { sessionId: string }) {
+export function PhotoReplaceButton({ sessionId }: { sessionId: number }) {
   const formRef = useRef<HTMLFormElement>(null);
   return (
     <form
