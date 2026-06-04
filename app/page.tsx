@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { auth, signOut } from "@/lib/auth";
@@ -10,34 +11,46 @@ export default async function HomePage() {
   if (!session?.user) redirect("/login");
   if (!session.user.approved) redirect("/pending");
 
-  // 다음 PR (#9) 에서 이 페이지는 /sessions 로 리다이렉트되거나
-  // "최근 활동" 카드를 보여주게 된다. 지금은 placeholder.
   async function logout() {
     "use server";
     await signOut({ redirectTo: "/login" });
   }
 
   return (
-    <main className="container mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-6">
-      <h1 className="text-3xl font-bold tracking-tight">뮤런</h1>
-      <p className="text-center text-sm text-muted-foreground">
-        안녕하세요, {session.user.name}.
-        <br />
-        다음 PR에서 활동 기록 기능이 들어옵니다.
-      </p>
-      {session.user.role === "ADMIN" && (
-        <a
-          href="/admin/members"
-          className="text-sm font-medium underline underline-offset-4"
-        >
-          → 회원 관리
-        </a>
-      )}
-      <form action={logout}>
-        <Button type="submit" variant="outline" size="sm">
-          로그아웃
-        </Button>
-      </form>
+    <main className="container mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 p-6">
+      <header className="flex flex-col items-center gap-2 text-center">
+        <h1 className="text-3xl font-bold tracking-tight">뮤런</h1>
+        <p className="text-sm text-muted-foreground">
+          안녕하세요, {session.user.name}.
+        </p>
+      </header>
+
+      <div className="flex w-full flex-col gap-3">
+        <Link href="/sessions/new" className="w-full">
+          <Button className="w-full" size="lg">
+            새 세션 만들기
+          </Button>
+        </Link>
+        <p className="text-center text-xs text-muted-foreground">
+          아카이브 리스트는 다음 PR에서 추가됩니다.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {session.user.role === "ADMIN" && (
+          <Link
+            href="/admin/members"
+            className="text-sm font-medium underline underline-offset-4"
+          >
+            회원 관리
+          </Link>
+        )}
+        <form action={logout}>
+          <Button type="submit" variant="ghost" size="sm">
+            로그아웃
+          </Button>
+        </form>
+      </div>
     </main>
   );
 }
