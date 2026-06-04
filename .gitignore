@@ -49,8 +49,11 @@ deploy/.env.*
 !deploy/.env.example
 
 # Local SQLite / uploads (if dev runs without docker volumes)
-data/
-uploads/
+/data/
+/uploads/
+/prisma/data/
+*.db
+*.db-journal
 tmp/
 
 # Runtime/agent state

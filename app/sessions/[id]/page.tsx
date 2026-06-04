@@ -11,6 +11,7 @@ import {
 } from "@/lib/pace";
 
 import { MyParticipationForm } from "./_components/MyParticipationForm";
+import { PhotoSection } from "./_components/PhotoSection";
 
 export const dynamic = "force-dynamic";
 
@@ -74,11 +75,12 @@ export default async function SessionDetailPage({ params }: PageProps) {
         )}
       </header>
 
-      <section className="mb-6 aspect-video w-full rounded-md border border-dashed bg-muted/40 flex items-center justify-center">
-        <span className="text-xs text-muted-foreground">
-          단체사진 자리 (다음 PR)
-        </span>
-      </section>
+      <PhotoSection
+        sessionId={sessionRow.id}
+        groupPhotoPath={sessionRow.groupPhotoPath}
+        canEdit={isHostOrAdmin}
+        altText={`${formatDateHeader(sessionRow.date)} ${sessionRow.location} 단체사진`}
+      />
 
       <section className="mb-8">
         <h2 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
