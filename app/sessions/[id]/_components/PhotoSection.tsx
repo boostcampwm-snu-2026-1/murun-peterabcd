@@ -71,7 +71,6 @@ function UploadForm({ sessionId }: { sessionId: string }) {
   return (
     <form
       action={uploadSessionPhoto}
-      encType="multipart/form-data"
       className="flex flex-col gap-2 sm:flex-row sm:items-center"
     >
       <input type="hidden" name="sessionId" value={sessionId} />

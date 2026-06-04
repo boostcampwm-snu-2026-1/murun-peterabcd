@@ -46,9 +46,11 @@ export async function upsertParticipation(formData: FormData): Promise<void> {
   }
   const note = noteParsed.data ? noteParsed.data : null;
 
-  // 모든 값이 null 이면 의미 없는 행 — 거부.
+  // 모든 값이 null 이면 의미 없는 입력 — silently noop.
+  // 사용자에게 보여주는 에러는 client-side validation 으로 다음 PR 에서 (react-hook-form
+  // 또는 useActionState 도입). throw 하면 dev 에서 Next error overlay 가 떠 UX 가 거침.
   if (distanceKm == null && durationSec == null && !note) {
-    throw new Error("거리 / 기록 / 메모 중 최소 한 가지를 입력하세요");
+    return;
   }
 
   await db.participation.upsert({

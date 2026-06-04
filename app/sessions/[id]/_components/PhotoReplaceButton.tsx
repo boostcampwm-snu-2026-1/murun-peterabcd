@@ -14,7 +14,6 @@ export function PhotoReplaceButton({ sessionId }: { sessionId: string }) {
     <form
       ref={formRef}
       action={uploadSessionPhoto}
-      encType="multipart/form-data"
       className="inline-flex"
     >
       <input type="hidden" name="sessionId" value={sessionId} />
