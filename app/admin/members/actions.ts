@@ -6,21 +6,26 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/guard";
 
-const userIdSchema = z.object({ userId: z.string().min(1) });
+export type AdminMemberResult = { ok: true } | { ok: false; error: string };
 
-function parseUserId(formData: FormData): string {
+const userIdSchema = z.object({ userId: z.string().min(1).max(40) });
+
+function parseUserId(formData: FormData): string | null {
   const parsed = userIdSchema.safeParse({ userId: formData.get("userId") });
-  if (!parsed.success) {
-    throw new Error("Invalid userId");
-  }
-  return parsed.data.userId;
+  return parsed.success ? parsed.data.userId : null;
 }
 
-export async function approveUser(formData: FormData): Promise<void> {
+export async function approveUser(
+  _prev: AdminMemberResult | null,
+  formData: FormData,
+): Promise<AdminMemberResult> {
   const admin = await requireAdmin();
   const userId = parseUserId(formData);
+  if (!userId) {
+    return { ok: false, error: "사용자 ID 가 올바르지 않습니다." };
+  }
   if (userId === admin.id) {
-    throw new Error("관리자는 자기 자신을 승인할 수 없습니다.");
+    return { ok: false, error: "본인은 본인을 승인할 수 없습니다." };
   }
   await db.user.update({
     where: { id: userId },
@@ -31,17 +36,24 @@ export async function approveUser(formData: FormData): Promise<void> {
     },
   });
   revalidatePath("/admin/members");
+  return { ok: true };
 }
 
-export async function rejectUser(formData: FormData): Promise<void> {
+export async function rejectUser(
+  _prev: AdminMemberResult | null,
+  formData: FormData,
+): Promise<AdminMemberResult> {
   const admin = await requireAdmin();
   const userId = parseUserId(formData);
+  if (!userId) {
+    return { ok: false, error: "사용자 ID 가 올바르지 않습니다." };
+  }
   if (userId === admin.id) {
-    throw new Error("관리자는 자기 자신을 거절할 수 없습니다.");
+    return { ok: false, error: "본인은 본인을 거절할 수 없습니다." };
   }
   // hard delete. Account 는 cascade 로 자동 정리.
-  // (만약 거절 대상이 이미 Session host 라면 FK 위반으로 실패 — Week 2 에선 정상 동작.
-  //  거절은 가입 직후에만 일어나는 흐름이라 host 권한이 있을 일이 없다.)
+  // 거절은 가입 직후에만 일어나는 흐름이라 host/participation FK 가 걸리지 않음.
   await db.user.delete({ where: { id: userId } });
   revalidatePath("/admin/members");
+  return { ok: true };
 }

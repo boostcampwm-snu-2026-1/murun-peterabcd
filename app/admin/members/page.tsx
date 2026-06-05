@@ -1,8 +1,7 @@
 import { requireAdmin } from "@/lib/guard";
 import { db } from "@/lib/db";
-import { Button } from "@/components/ui/button";
 
-import { approveUser, rejectUser } from "./actions";
+import { PendingMemberActions } from "./_components/PendingMemberActions";
 
 export const dynamic = "force-dynamic";
 
@@ -59,20 +58,7 @@ export default async function AdminMembersPage() {
                     가입 요청 {formatDate(u.joinedAt)}
                   </span>
                 </div>
-                <div className="flex gap-2">
-                  <form action={approveUser}>
-                    <input type="hidden" name="userId" value={u.id} />
-                    <Button type="submit" size="sm">
-                      승인
-                    </Button>
-                  </form>
-                  <form action={rejectUser}>
-                    <input type="hidden" name="userId" value={u.id} />
-                    <Button type="submit" variant="outline" size="sm">
-                      거절
-                    </Button>
-                  </form>
-                </div>
+                <PendingMemberActions userId={u.id} />
               </li>
             ))}
           </ul>
