@@ -5,24 +5,49 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { requireHostOrAdmin } from "@/lib/guard";
-import { deleteUploadedFile, saveUploadedFile } from "@/lib/uploads";
+import {
+  ALLOWED_MIME_TYPES,
+  MAX_UPLOAD_BYTES,
+  deleteUploadedFile,
+  saveUploadedFile,
+} from "@/lib/uploads";
+
+export type PhotoResult = { ok: true } | { ok: false; error: string };
 
 const sessionIdSchema = z.coerce.number().int().positive();
 
 /**
- * 단체사진 업로드. 호스트/ADMIN 만. 기존 사진이 있으면 새 업로드 성공 후 best-effort 로 삭제.
+ * 단체사진 업로드. 호스트/ADMIN 만. useActionState 시그니처.
  *
- * 순서: 호스트 가드 → File 검증/저장 → DB update (성공 시 commit) → 기존 파일 정리.
- * 디스크 쓰기 실패 시 DB 변경 X. DB 실패 시 새 파일은 남는데, cuid 라 충돌 없고
- * 다음 업로드 시 별도 정리됨 — 백업 cron 의 일부로 orphan 청소는 Week 3.
+ * 순서: 가드 → 검증 → 저장 → DB update → 기존 파일 best-effort 삭제.
  */
-export async function uploadSessionPhoto(formData: FormData): Promise<void> {
-  const sessionId = sessionIdSchema.parse(formData.get("sessionId"));
+export async function uploadSessionPhoto(
+  _prev: PhotoResult | null,
+  formData: FormData,
+): Promise<PhotoResult> {
+  const sidParsed = sessionIdSchema.safeParse(formData.get("sessionId"));
+  if (!sidParsed.success) {
+    return { ok: false, error: "세션 ID 가 올바르지 않습니다." };
+  }
+  const sessionId = sidParsed.data;
   await requireHostOrAdmin(sessionId);
 
   const file = formData.get("photo");
   if (!(file instanceof File)) {
-    throw new Error("사진 파일이 누락되었습니다.");
+    return { ok: false, error: "사진 파일을 선택하세요." };
+  }
+  if (file.size <= 0) {
+    return { ok: false, error: "빈 파일입니다." };
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    const mb = (file.size / 1024 / 1024).toFixed(1);
+    return { ok: false, error: `파일이 너무 큽니다 (${mb} MB > 15 MB).` };
+  }
+  if (!ALLOWED_MIME_TYPES.has((file.type ?? "").toLowerCase())) {
+    return {
+      ok: false,
+      error: "지원하지 않는 파일 형식입니다. (jpg / png / webp / heic)",
+    };
   }
 
   const existing = await db.session.findUnique({
@@ -30,7 +55,15 @@ export async function uploadSessionPhoto(formData: FormData): Promise<void> {
     select: { groupPhotoPath: true },
   });
 
-  const { relPath } = await saveUploadedFile(file, "sessions");
+  let relPath: string;
+  try {
+    const saved = await saveUploadedFile(file, "sessions");
+    relPath = saved.relPath;
+  } catch (err) {
+    // saveUploadedFile 안의 추가 검증(이미 위에서 잡지만 안전망)
+    const message = err instanceof Error ? err.message : "파일 저장 실패";
+    return { ok: false, error: message };
+  }
 
   await db.session.update({
     where: { id: sessionId },
@@ -42,13 +75,21 @@ export async function uploadSessionPhoto(formData: FormData): Promise<void> {
   }
 
   revalidatePath(`/sessions/${sessionId}`);
+  return { ok: true };
 }
 
 /**
- * 단체사진 제거. 호스트/ADMIN 만. DB 먼저 비우고 디스크는 best-effort.
+ * 단체사진 제거. 호스트/ADMIN 만. useActionState 시그니처.
  */
-export async function removeSessionPhoto(formData: FormData): Promise<void> {
-  const sessionId = sessionIdSchema.parse(formData.get("sessionId"));
+export async function removeSessionPhoto(
+  _prev: PhotoResult | null,
+  formData: FormData,
+): Promise<PhotoResult> {
+  const sidParsed = sessionIdSchema.safeParse(formData.get("sessionId"));
+  if (!sidParsed.success) {
+    return { ok: false, error: "세션 ID 가 올바르지 않습니다." };
+  }
+  const sessionId = sidParsed.data;
   await requireHostOrAdmin(sessionId);
 
   const existing = await db.session.findUnique({
@@ -57,7 +98,7 @@ export async function removeSessionPhoto(formData: FormData): Promise<void> {
   });
 
   if (!existing?.groupPhotoPath) {
-    return; // 이미 없음
+    return { ok: true }; // 이미 없음 — noop
   }
 
   await db.session.update({
@@ -67,4 +108,5 @@ export async function removeSessionPhoto(formData: FormData): Promise<void> {
   await deleteUploadedFile(existing.groupPhotoPath);
 
   revalidatePath(`/sessions/${sessionId}`);
+  return { ok: true };
 }

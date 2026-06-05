@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+# 같은 PR 에 빠르게 여러 push 가 와도 마지막 것만 실행
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: typecheck + lint + build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          run_install: false
+
+      - name: Resolve pnpm store path
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-${{ runner.os }}-
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - name: Install dependencies
+        # frozen-lockfile 로 의존 정확성 강제 (lockfile mismatch 면 fail)
+        run: pnpm install --frozen-lockfile
+
+      # postinstall 이 prisma generate 를 이미 돌리지만, hoisted layout 에서
+      # 한 번 더 명시적으로 (CI 캐시 hit 시점 안전)
+      - name: Prisma generate
+        run: pnpm db:generate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+        env:
+          # build 단계에 일부 env 필요 — Auth.js / DB url 은 dummy 로 충분
+          DATABASE_URL: file:./data/ci-stub.db
+          AUTH_URL: http://localhost:3000
+          AUTH_SECRET: ci-stub-secret-ci-stub-secret-ci-stub-secret
+          AUTH_TRUST_HOST: "true"
+          AUTH_GOOGLE_ID: ci-stub
+          AUTH_GOOGLE_SECRET: ci-stub
+          AUTH_GOOGLE_HD: snu.ac.kr
+          NEXT_PUBLIC_APP_URL: http://localhost:3000

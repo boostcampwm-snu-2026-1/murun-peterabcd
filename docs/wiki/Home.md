@@ -16,6 +16,7 @@
 
 ### 진행 기록
 - [회고 · Week 1](Retrospective-Week1)
+- [회고 · Week 2](Retrospective-Week2)
 
 ## 3주 로드맵 요약
 
