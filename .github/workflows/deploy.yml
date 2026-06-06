@@ -82,11 +82,37 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ---------------------------------------------------------------------------
-  # 2) SSH 로 N100 접속 → docker compose pull && up -d
+  # 2) N100 SSH secrets 준비 여부 확인. 미등록이면 이미지 build/push 까지만 하고 deploy 는 skip.
+  # ---------------------------------------------------------------------------
+  deploy-preflight:
+    name: Check deploy secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      deploy_ready: ${{ steps.secrets.outputs.deploy_ready }}
+    steps:
+      - name: Check N100 secrets
+        id: secrets
+        run: |
+          if [ -n "$N100_HOST" ] && [ -n "$N100_USER" ] && [ -n "$N100_SSH_KEY" ]; then
+            echo "deploy_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy_ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::N100 deploy secrets are not configured yet. Image build/push completed; SSH deploy is skipped."
+          fi
+        env:
+          N100_HOST: ${{ secrets.N100_HOST }}
+          N100_USER: ${{ secrets.N100_USER }}
+          N100_SSH_KEY: ${{ secrets.N100_SSH_KEY }}
+
+
+  # ---------------------------------------------------------------------------
+  # 3) SSH 로 N100 접속 → docker compose pull && up -d
   # ---------------------------------------------------------------------------
   deploy:
     name: Deploy to ${{ needs.build.outputs.target }}
-    needs: build
+    needs: [build, deploy-preflight]
+    if: needs.deploy-preflight.outputs.deploy_ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # prod 는 환경(environment) 보호로 수동 승인 가능
@@ -94,22 +120,6 @@ jobs:
       name: ${{ needs.build.outputs.target }}
 
     steps:
-      - name: Sanity check secrets
-        run: |
-          missing=""
-          for v in N100_HOST N100_USER N100_SSH_KEY; do
-            eval val="\$$v"
-            if [ -z "$val" ]; then missing="$missing $v"; fi
-          done
-          if [ -n "$missing" ]; then
-            echo "::error::Missing required secrets:$missing"
-            echo "GitHub repo Settings → Secrets and variables → Actions 에서 등록하세요."
-            exit 1
-          fi
-        env:
-          N100_HOST: ${{ secrets.N100_HOST }}
-          N100_USER: ${{ secrets.N100_USER }}
-          N100_SSH_KEY: ${{ secrets.N100_SSH_KEY }}
 
       - name: Pull & restart on N100
         uses: appleboy/ssh-action@v1.0.3
@@ -118,11 +128,12 @@ jobs:
           username: ${{ secrets.N100_USER }}
           key: ${{ secrets.N100_SSH_KEY }}
           # 호스트의 deploy/ 디렉터리에서 pull → up.
-          # IMAGE_TAG 가 .env 의 placeholder 를 덮어쓰며 docker compose 가 사용.
+          # IMAGE_TAG selects the pushed GHCR image; MURUN_ENV_FILE selects .env.staging/.env.prod.
           script: |
             set -e
             cd ${MURUN_DEPLOY_DIR:-~/murun-peterabcd/deploy}
             export IMAGE_TAG="${{ needs.build.outputs.image_tag }}"
-            docker compose -p murun-${{ needs.build.outputs.target }} pull
-            docker compose -p murun-${{ needs.build.outputs.target }} up -d --remove-orphans
+            export MURUN_ENV_FILE=".env.${{ needs.build.outputs.target }}"
+            docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" pull
+            docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" up -d --remove-orphans
             docker image prune -f

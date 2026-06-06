@@ -154,7 +154,7 @@ murun-peterabcd/
 ```
 
 - staging/prod 분리: 같은 이미지를 `-p murun-staging` / `-p murun-prod` 다른 project name으로 동시에. 볼륨·포트·서브도메인 전부 분리.
-- 빌드는 GitHub Actions에서 → `ghcr.io/boostcampwm-snu-2026-1/murun:<sha>` 로 push. N100은 pull만.
+- 빌드는 GitHub Actions에서 → `ghcr.io/boostcampwm-snu-2026-1/murun-peterabcd:<target-sha>` 로 push. N100은 pull만.
 
 ## 6. 채택하지 않은 것
 

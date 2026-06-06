@@ -17,10 +17,10 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    image: ghcr.io/boostcampwm-snu-2026-1/murun:${IMAGE_TAG:-local}
+    image: ghcr.io/boostcampwm-snu-2026-1/murun-peterabcd:${IMAGE_TAG:-local}
     restart: unless-stopped
     env_file:
-      - ./.env
+      - ${MURUN_ENV_FILE:-.env}
     volumes:
       - data:/app/data
       - uploads:/app/uploads
