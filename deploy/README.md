@@ -23,6 +23,9 @@ cp .env.example .env.prod
 echo "<PAT_with_read:packages>" | docker login ghcr.io -u <github_user> --password-stdin
 
 # 4) 첫 가동 (이미지 빌드는 GH Actions 가 대신, 여기선 pull 만)
+export MURUN_ENV_FILE=.env.staging
+export IMAGE_TAG=staging
+
 docker compose -p murun-staging --env-file .env.staging pull
 docker compose -p murun-staging --env-file .env.staging up -d
 ```
@@ -45,6 +48,8 @@ gh secret set N100_HOST --body "<ip-or-domain>"
 gh secret set N100_USER --body "<user>"
 ```
 
+Secrets 가 아직 없으면 GitHub Actions 는 GHCR 이미지 build/push 까지만 성공 처리하고, SSH deploy job 은 skip 된다. N100 준비 후 위 3개 secret 을 넣으면 다음 dev push 부터 staging deploy 까지 진행된다.
+
 ### (옵션) prod environment 보호
 
 main 으로의 자동 배포 전에 수동 승인이 필요하면 Settings → Environments → "prod" 생성 후 "Required reviewers" 본인 추가.
@@ -60,9 +65,9 @@ cd murun-peterabcd/deploy
 cp .env.example .env
 # (도메인 붙기 전엔 DOMAIN=:80 그대로 두기)
 
-# app 환경변수 (지금은 비어 있어도 OK, 후속 PR에서 채워짐)
-touch .env       # app 서비스 env_file 이 ./.env 라서 같은 파일이 두 용도 겸함
-                 # — 추후 app.env 로 분리 예정
+# compose 변수와 app 환경변수를 같은 파일에서 읽음
+# 기본 수동 실행은 .env, staging/prod 분리는 MURUN_ENV_FILE 로 지정
+
 
 # 빌드 + 기동
 docker compose up -d --build
@@ -77,7 +82,7 @@ curl -fsS http://localhost/ && echo OK
 cd murun-peterabcd
 git pull
 cd deploy
-docker compose up -d --build
+MURUN_ENV_FILE=.env docker compose --env-file .env up -d --build
 docker image prune -f
 ```
 
@@ -86,11 +91,11 @@ docker image prune -f
 같은 디렉터리에 `.env.staging`, `.env.prod` 를 별도로 두고 project name 으로 분리.
 
 ```bash
-# staging (포트 8080)
-CADDY_HTTP_PORT=8080 docker compose -p murun-staging --env-file .env.staging up -d --build
+# staging (포트 8080; .env.staging 안에 CADDY_HTTP_PORT=8080 권장)
+MURUN_ENV_FILE=.env.staging docker compose -p murun-staging --env-file .env.staging up -d --build
 
 # prod (포트 80)
-docker compose -p murun-prod --env-file .env.prod up -d --build
+MURUN_ENV_FILE=.env.prod docker compose -p murun-prod --env-file .env.prod up -d --build
 ```
 
 볼륨은 project name prefix 가 자동으로 붙어 분리됨 (`murun-staging_data` vs `murun-prod_data`).
@@ -109,10 +114,10 @@ docker compose -p murun-prod --env-file .env.prod up -d --build
 
 ```bash
 # 직전 이미지 태그 확인
-docker images ghcr.io/boostcampwm-snu-2026-1/murun --format '{{.Tag}}\t{{.CreatedAt}}'
+docker images ghcr.io/boostcampwm-snu-2026-1/murun-peterabcd --format '{{.Tag}}\t{{.CreatedAt}}'
 
 # 특정 태그로 되돌리기
-IMAGE_TAG=<sha> docker compose up -d
+IMAGE_TAG=<tag> MURUN_ENV_FILE=.env.staging docker compose --env-file .env.staging up -d
 ```
 
 ## 6. 트러블슈팅
