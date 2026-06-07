@@ -132,8 +132,22 @@ jobs:
           script: |
             set -e
             cd ${MURUN_DEPLOY_DIR:-~/murun-peterabcd/deploy}
+            git -C .. fetch --depth=1 origin "${{ github.ref_name }}"
+            git -C .. checkout -B "${{ github.ref_name }}" FETCH_HEAD
             export IMAGE_TAG="${{ needs.build.outputs.image_tag }}"
             export MURUN_ENV_FILE=".env.${{ needs.build.outputs.target }}"
+            on_error() {
+              echo "::group::docker compose ps"
+              docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" ps || true
+              echo "::endgroup::"
+              echo "::group::app logs"
+              docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" logs --tail=160 app || true
+              echo "::endgroup::"
+              echo "::group::caddy logs"
+              docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" logs --tail=80 caddy || true
+              echo "::endgroup::"
+            }
+            trap on_error ERR
             docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" pull
             docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" up -d --remove-orphans
             docker image prune -f

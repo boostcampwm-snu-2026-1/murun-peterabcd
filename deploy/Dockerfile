@@ -45,11 +45,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Prisma: migration 적용에 필요한 CLI + schema + 이미 생성된 client
+# Prisma migrate deploy 는 CLI 의 transitive deps(effect 등)가 필요하므로
+# standalone trace 의 최소 node_modules 대신 builder 의 전체 install tree 를 사용한다.
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Entrypoint: migrate deploy → node server.js
 COPY --chown=nextjs:nodejs deploy/entrypoint.sh /app/entrypoint.sh
