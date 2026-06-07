@@ -14,8 +14,8 @@ export const authConfig = {
   session: { strategy: "jwt" },
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      clientId: process.env.AUTH_GOOGLE_ID ?? "",
+      clientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
       authorization: {
         params: {
           hd: REQUIRED_HD,

@@ -1,8 +1,11 @@
 // 세션 도메인 쿼리.
 //
-// keyset pagination 사용 — 큰 데이터에도 안정적이고 cursor URL 이 공유 가능.
-// 정렬은 (date desc, id desc). id 도 같이 두는 이유: 같은 날짜의 안정적 tie-break.
+// keyset pagination — 큰 데이터에도 안정적이고 cursor URL 이 공유 가능.
+// 정렬은 (date desc, id desc). 두 키 모두 정렬 키에 들어가야 같은 날짜 안에서도
+// 안정적이고, "오래된 날짜인데 늦게 생성돼 id 가 큰 세션" 도 누락되지 않는다.
+// id-only cursor 는 후자 케이스에서 페이지가 끊긴다.
 
+import "server-only";
 import { db } from "@/lib/db";
 
 export const PAGE_SIZE = 20;
@@ -25,17 +28,19 @@ export type SessionListPage = {
 
 /**
  * 최신순 keyset pagination.
- *   - cursorId 미지정: 첫 페이지
- *   - cursorId 지정: 그 id 보다 *오래된* (id 가 작은) 세션부터 PAGE_SIZE 개
+ *   - cursor 미지정: 첫 페이지
+ *   - cursor 지정: 정렬 순서상 그 id 행 *바로 다음* 부터 PAGE_SIZE 개.
+ *     Prisma 의 cursor + skip:1 이 (date desc, id desc) 시퀀스에서 정확한
+ *     keyset 위치를 잡아준다 — id 가 unique 라 행 위치가 모호하지 않다.
  */
 export async function listSessions(opts: {
   cursorId?: number;
 }): Promise<SessionListPage> {
-  const where = opts.cursorId ? { id: { lt: opts.cursorId } } : undefined;
-
   const rows = await db.session.findMany({
-    where,
     orderBy: [{ date: "desc" }, { id: "desc" }],
+    ...(opts.cursorId
+      ? { cursor: { id: opts.cursorId }, skip: 1 }
+      : {}),
     take: PAGE_SIZE + 1, // 다음 페이지 존재 여부 판별용으로 +1
     select: {
       id: true,

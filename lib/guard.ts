@@ -1,6 +1,7 @@
 // Server Component / Server Action 의 진입점에서 호출하는 인증·권한 가드.
 // 권한 매트릭스는 docs/wiki/03-Screen-Flow.md §5 참조.
 
+import "server-only";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
