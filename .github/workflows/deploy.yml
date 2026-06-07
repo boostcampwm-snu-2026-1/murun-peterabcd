@@ -1,18 +1,26 @@
 name: Deploy
 
+# 정책 (Week 3~):
+#   - N100 에는 prod 단일 환경만 운영.
+#   - dev push → staging-* GHCR image build/push 까지만. "컨테이너 빌드가 깨지지 않는가" 안전망용.
+#     N100 에는 절대 SSH 안 함.
+#   - main push → prod-* GHCR image build/push + N100 SSH 배포.
+#   - workflow_dispatch 로 임의 ref 에 대해 prod target 수동 배포 가능.
+#
+# Staging 컨테이너를 N100 에서 안 돌리기로 결정한 배경은 회고-Week2 + 회고-Week3 참조.
 on:
   push:
     branches: [dev, main]
   workflow_dispatch:
     inputs:
       target:
-        description: "배포 대상 (staging | prod)"
+        description: "수동 배포 대상 (prod 만 지원)"
         required: true
-        default: "staging"
+        default: "prod"
         type: choice
-        options: [staging, prod]
+        options: [prod]
 
-# 동시 배포 금지. 같은 대상에 새 push 가 오면 in-progress 취소.
+# 동시 배포 금지. 같은 ref 에 새 push 가 오면 in-progress 취소.
 concurrency:
   group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
@@ -27,7 +35,7 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # 1) build image → ghcr.io 푸시
+  # 1) build image → ghcr.io 푸시 (dev=staging tag, main=prod tag, dispatch=prod tag)
   # ---------------------------------------------------------------------------
   build:
     name: Build & push image
@@ -36,6 +44,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
       target: ${{ steps.meta.outputs.target }}
+      deploy_to_n100: ${{ steps.meta.outputs.deploy_to_n100 }}
 
     steps:
       - name: Checkout
@@ -47,15 +56,20 @@ jobs:
           # 우선순위: workflow_dispatch.inputs.target → branch
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             target="${{ inputs.target }}"
+            deploy_to_n100="true"
           elif [ "${{ github.ref_name }}" = "main" ]; then
             target="prod"
+            deploy_to_n100="true"
           else
+            # dev push (또는 그 외 브랜치) — image 만 빌드하고 N100 SSH 는 안 함.
             target="staging"
+            deploy_to_n100="false"
           fi
           sha_short="$(echo "${{ github.sha }}" | cut -c1-7)"
           image_tag="${target}-${sha_short}"
           echo "target=$target" >> "$GITHUB_OUTPUT"
           echo "image_tag=$image_tag" >> "$GITHUB_OUTPUT"
+          echo "deploy_to_n100=$deploy_to_n100" >> "$GITHUB_OUTPUT"
           echo "image_ref=${REGISTRY}/${IMAGE}:${image_tag}" >> "$GITHUB_OUTPUT"
           echo "image_ref_target=${REGISTRY}/${IMAGE}:${target}" >> "$GITHUB_OUTPUT"
 
@@ -82,12 +96,14 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ---------------------------------------------------------------------------
-  # 2) N100 SSH secrets 준비 여부 확인. 미등록이면 이미지 build/push 까지만 하고 deploy 는 skip.
+  # 2) N100 SSH secrets 준비 여부 확인. 미등록이면 build 까지만 하고 deploy 는 skip.
   # ---------------------------------------------------------------------------
   deploy-preflight:
     name: Check deploy secrets
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    needs: build
+    if: needs.build.outputs.deploy_to_n100 == 'true'
     outputs:
       deploy_ready: ${{ steps.secrets.outputs.deploy_ready }}
     steps:
@@ -105,30 +121,28 @@ jobs:
           N100_USER: ${{ secrets.N100_USER }}
           N100_SSH_KEY: ${{ secrets.N100_SSH_KEY }}
 
-
   # ---------------------------------------------------------------------------
-  # 3) SSH 로 N100 접속 → docker compose pull && up -d
+  # 3) main / dispatch 한정. SSH 로 N100 접속 → docker compose pull && up -d
   # ---------------------------------------------------------------------------
   deploy:
     name: Deploy to ${{ needs.build.outputs.target }}
     needs: [build, deploy-preflight]
-    if: needs.deploy-preflight.outputs.deploy_ready == 'true'
+    if: needs.build.outputs.deploy_to_n100 == 'true' && needs.deploy-preflight.outputs.deploy_ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # prod 는 환경(environment) 보호로 수동 승인 가능
+    # prod environment 에 Required reviewers 를 걸면 수동 승인 게이트가 된다.
     environment:
       name: ${{ needs.build.outputs.target }}
 
     steps:
-
       - name: Pull & restart on N100
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.N100_HOST }}
           username: ${{ secrets.N100_USER }}
           key: ${{ secrets.N100_SSH_KEY }}
-          # 호스트의 deploy/ 디렉터리에서 pull → up.
-          # IMAGE_TAG selects the pushed GHCR image; MURUN_ENV_FILE selects .env.staging/.env.prod.
+          # 호스트의 deploy/ 디렉터리에서 git sync → image pull → compose up.
+          # IMAGE_TAG 는 GHCR 이미지 태그, MURUN_ENV_FILE 은 .env.prod 고정 (N100=prod only).
           script: |
             set -e
             cd ${MURUN_DEPLOY_DIR:-~/murun-peterabcd/deploy}

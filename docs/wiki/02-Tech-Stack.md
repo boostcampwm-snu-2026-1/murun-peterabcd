@@ -149,12 +149,12 @@ murun-peterabcd/
         ▲
         │ GitHub Actions가 SSH로:
         │   docker compose pull && up -d
-        │ staging: dev push → 자동
-        │ prod:    main push → 수동 승인 후
+        │ main push → prod 자동 배포
+        │ dev  push → GHCR image 빌드/푸시만 (N100 미배포)
 ```
 
-- staging/prod 분리: 같은 이미지를 `-p murun-staging` / `-p murun-prod` 다른 project name으로 동시에. 볼륨·포트·서브도메인 전부 분리.
-- 빌드는 GitHub Actions에서 → `ghcr.io/boostcampwm-snu-2026-1/murun-peterabcd:<target-sha>` 로 push. N100은 pull만.
+- **N100 = prod 단일.** staging 컨테이너는 N100 에서 안 돌린다. dev 개발은 로컬 `pnpm dev` 로 충분하다 본다.
+- 빌드는 GitHub Actions에서 → `ghcr.io/boostcampwm-snu-2026-1/murun-peterabcd:<target-sha>` 로 push. N100은 main push 일 때만 pull + restart.
 
 ## 6. 채택하지 않은 것
 
