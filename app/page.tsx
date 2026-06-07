@@ -36,6 +36,11 @@ export default async function HomePage() {
             전체 아카이브
           </Button>
         </Link>
+        <Link href="/me" className="w-full">
+          <Button className="w-full" variant="outline" size="lg">
+            내 기록
+          </Button>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">
