@@ -94,7 +94,17 @@ export default async function SessionDetailPage({ params }: PageProps) {
             <span>시작 {sessionRow.startTime} · </span>
           )}
           {sessionRow.weather && <span>{sessionRow.weather} · </span>}
-          호스트: {sessionRow.host.name}
+          호스트:{" "}
+          <Link
+            href={
+              sessionRow.host.id === user.id
+                ? "/me"
+                : `/runners/${sessionRow.host.id}`
+            }
+            className="underline-offset-4 hover:underline"
+          >
+            {sessionRow.host.name}
+          </Link>
         </p>
       </header>
 
@@ -130,7 +140,12 @@ export default async function SessionDetailPage({ params }: PageProps) {
                   className="flex flex-col gap-1 p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-baseline gap-2">
-                    <span className="font-medium">{p.user.name}</span>
+                    <Link
+                      href={isMine ? "/me" : `/runners/${p.userId}`}
+                      className="font-medium underline-offset-4 hover:underline"
+                    >
+                      {p.user.name}
+                    </Link>
                     {isMine && (
                       <span className="text-xs text-muted-foreground">(나)</span>
                     )}
