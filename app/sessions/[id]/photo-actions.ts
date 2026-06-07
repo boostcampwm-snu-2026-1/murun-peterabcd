@@ -5,12 +5,8 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { requireHostOrAdmin } from "@/lib/guard";
-import {
-  ALLOWED_MIME_TYPES,
-  MAX_UPLOAD_BYTES,
-  deleteUploadedFile,
-  saveUploadedFile,
-} from "@/lib/uploads";
+import { checkUploadFile } from "@/lib/upload-limits";
+import { deleteUploadedFile, saveUploadedFile } from "@/lib/uploads";
 
 export type PhotoResult = { ok: true } | { ok: false; error: string };
 
@@ -33,22 +29,11 @@ export async function uploadSessionPhoto(
   await requireHostOrAdmin(sessionId);
 
   const file = formData.get("photo");
-  if (!(file instanceof File)) {
-    return { ok: false, error: "사진 파일을 선택하세요." };
+  const preflight = checkUploadFile(file instanceof File ? file : null);
+  if (preflight) {
+    return { ok: false, error: preflight };
   }
-  if (file.size <= 0) {
-    return { ok: false, error: "빈 파일입니다." };
-  }
-  if (file.size > MAX_UPLOAD_BYTES) {
-    const mb = (file.size / 1024 / 1024).toFixed(1);
-    return { ok: false, error: `파일이 너무 큽니다 (${mb} MB > 15 MB).` };
-  }
-  if (!ALLOWED_MIME_TYPES.has((file.type ?? "").toLowerCase())) {
-    return {
-      ok: false,
-      error: "지원하지 않는 파일 형식입니다. (jpg / png / webp / heic)",
-    };
-  }
+  const photo = file as File;
 
   const existing = await db.session.findUnique({
     where: { id: sessionId },
@@ -57,7 +42,7 @@ export async function uploadSessionPhoto(
 
   let relPath: string;
   try {
-    const saved = await saveUploadedFile(file, "sessions");
+    const saved = await saveUploadedFile(photo, "sessions");
     relPath = saved.relPath;
   } catch (err) {
     // saveUploadedFile 안의 추가 검증(이미 위에서 잡지만 안전망)

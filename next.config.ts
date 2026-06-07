@@ -24,6 +24,15 @@ const nextConfig: NextConfig = {
   },
   // PrismaClient 가 Next 의 bundler 에 의해 traced 되지 않도록 external 처리.
   serverExternalPackages: ["@prisma/client", ".prisma/client"],
+  // 사진 업로드 server action 은 multipart/form-data 로 최대 15MB 원본 + multipart
+  // overhead 까지 도달할 수 있다. Next 의 기본 1MB 제한이면 큰 JPG 가 우리 코드
+  // 검증(`lib/upload-limits.ts`)에 도달하지 못하고 generic 413 으로 죽는다.
+  // 진짜 상한은 lib 의 MAX_UPLOAD_BYTES(15MB) 이고, 이 값은 그보다 한 단계 위.
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb",
+    },
+  },
 };
 
 export default nextConfig;

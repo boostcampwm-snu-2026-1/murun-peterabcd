@@ -16,15 +16,15 @@ import { mkdir, unlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-export const ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-]);
+import {
+  ALLOWED_MIME_TYPES,
+  MAX_UPLOAD_BYTES,
+  MAX_UPLOAD_MB,
+} from "@/lib/upload-limits";
 
-export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024; // 15 MB
+// 호환을 위해 server 쪽 import 경로도 유지 (기존 코드: from "@/lib/uploads").
+export { ALLOWED_MIME_TYPES, MAX_UPLOAD_BYTES } from "@/lib/upload-limits";
+
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -95,7 +95,7 @@ export async function saveUploadedFile(
   }
   if (file.size > MAX_UPLOAD_BYTES) {
     throw new Error(
-      `파일이 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)} MB > 15 MB).`,
+      `파일이 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)} MB > ${MAX_UPLOAD_MB} MB).`,
     );
   }
   const mime = (file.type || "").toLowerCase();
