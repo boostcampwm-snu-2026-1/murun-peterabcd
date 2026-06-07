@@ -69,11 +69,6 @@ export default async function SessionDetailPage({ params }: PageProps) {
           {sessionRow.weather && <span>{sessionRow.weather} · </span>}
           호스트: {sessionRow.host.name}
         </p>
-        {isHostOrAdmin && (
-          <p className="text-xs text-muted-foreground">
-            [세션 수정 — 다음 PR에서 추가]
-          </p>
-        )}
       </header>
 
       <PhotoSection

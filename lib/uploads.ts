@@ -1,10 +1,15 @@
 // 단체사진 업로드 helper. 로컬 볼륨(`UPLOADS_DIR`) 에 파일 저장.
+// **server-only** — Node API (fs/crypto/path) 사용. client 컴포넌트가
+// 이 모듈을 (transitively) import 하면 webpack 빌드가 깨진다. URL 인코딩처럼
+// 양쪽에서 필요한 순수 함수는 `lib/upload-url.ts` 에 둔다.
 //
 // 보안 메모:
 //   - 외부 입력 (사용자 업로드 파일명) 은 절대 path 에 직접 박지 않는다.
 //   - 새 파일은 항상 server-generated id + MIME 기반 확장자.
 //   - 조회 시 path traversal (`../`) 차단을 위해 resolveUploadPath() 의
 //     prefix 검증을 거친다.
+
+import "server-only";
 
 import { createHash, randomBytes } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";

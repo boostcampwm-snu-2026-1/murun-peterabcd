@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { encodeUploadPath } from "@/lib/upload-url";
+
 type Props = {
   id: number;
   date: Date;
@@ -14,7 +16,7 @@ type Props = {
 
 export function SessionCard(props: Props) {
   const photoSrc = props.groupPhotoPath
-    ? `/api/uploads/${encodePath(props.groupPhotoPath)}`
+    ? `/api/uploads/${encodeUploadPath(props.groupPhotoPath)}`
     : null;
 
   return (
@@ -65,9 +67,3 @@ function formatDate(d: Date): string {
   }).format(d);
 }
 
-function encodePath(relPath: string): string {
-  return relPath
-    .split("/")
-    .map((s) => encodeURIComponent(s))
-    .join("/");
-}
