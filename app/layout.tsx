@@ -7,8 +7,24 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
 export const metadata: Metadata = {
   metadataBase: appUrl ? new URL(appUrl) : undefined,
-  title: "뮤런",
+  title: {
+    default: "뮤런",
+    template: "%s · 뮤런",
+  },
   description: "애니뮤 러닝 소모임의 정기 운동 아카이브",
+  applicationName: "뮤런",
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    siteName: "뮤런",
+    title: "뮤런",
+    description: "애니뮤 러닝 소모임의 정기 운동 아카이브",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "뮤런",
+    description: "애니뮤 러닝 소모임의 정기 운동 아카이브",
+  },
 };
 
 export const viewport: Viewport = {
