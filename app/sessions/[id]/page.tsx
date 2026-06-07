@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -14,6 +15,32 @@ import { MyParticipationForm } from "./_components/MyParticipationForm";
 import { PhotoSection } from "./_components/PhotoSection";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id: idParam } = await params;
+  const id = Number.parseInt(idParam, 10);
+  if (!Number.isFinite(id) || id <= 0) return {};
+  const session = await db.session.findUnique({
+    where: { id },
+    select: { date: true, location: true, host: { select: { name: true } } },
+  });
+  if (!session) return {};
+  const dateText = new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(session.date);
+  const title = `${dateText} · ${session.location}`;
+  const description = `호스트: ${session.host.name}`;
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+    twitter: { title, description },
+  };
+}
 
 type PageProps = {
   params: Promise<{ id: string }>;

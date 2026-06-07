@@ -16,6 +16,13 @@ export default auth((req) => {
 
   const path = nextUrl.pathname;
 
+  // 카톡/슬랙 등 외부 미리보기 크롤러용 OG/twitter 이미지 — 의도적으로 public.
+  // 메타데이터(날짜/장소/사진) 노출은 동아리 내부 서비스 + URL 추측이 아주 어렵지 않은
+  // 점을 알면서도, 카톡 공유 UX 가치를 더 크게 봐서 수용. (회고-Week3 참조.)
+  if (path.endsWith("/opengraph-image") || path.endsWith("/twitter-image")) {
+    return;
+  }
+
   // /login 은 비로그인만. 로그인된 사용자는 상태에 맞춰 보냄.
   if (path === "/login") {
     if (isLoggedIn) {
@@ -42,6 +49,8 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|api/health|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico)).*)",
+    // exclude: api/auth, api/health, PWA manifest, Next icons, our /icons/[size],
+    // static assets, common image extensions.
+    "/((?!api/auth|api/health|manifest\\.webmanifest|icon|apple-icon|icons/|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico)).*)",
   ],
 };
