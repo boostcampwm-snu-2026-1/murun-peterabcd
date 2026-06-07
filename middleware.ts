@@ -11,14 +11,13 @@ const { auth } = NextAuth(authConfig);
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const role = req.auth?.user?.role;
   const approved = req.auth?.user?.approved;
 
   const path = nextUrl.pathname;
 
   // 카톡/슬랙 등 외부 미리보기 크롤러용 OG/twitter 이미지 — 의도적으로 public.
   // 메타데이터(날짜/장소/사진) 노출은 동아리 내부 서비스 + URL 추측이 아주 어렵지 않은
-  // 점을 알면서도, 카톡 공유 UX 가치를 더 크게 봐서 수용. (회고-Week3 참조.)
+  // 점을 알면서도, 카톡 공유 UX 가치를 더 크게 봐서 수용.
   if (path.endsWith("/opengraph-image") || path.endsWith("/twitter-image")) {
     return;
   }
@@ -39,10 +38,11 @@ export default auth((req) => {
     return NextResponse.redirect(url);
   }
 
-  // /admin/* 는 ADMIN 만. 그 외는 404 처럼 처리.
-  if (path.startsWith("/admin") && role !== "ADMIN") {
-    return NextResponse.rewrite(new URL("/404-not-found", nextUrl));
-  }
+  // 주의:
+  //   /admin/* 의 권한 판정은 middleware 에서 하지 않는다.
+  //   Edge-safe authConfig 는 DB fresh fetch 를 못 해서 role/approved 가 stale 하거나
+  //   아예 없는 상태가 될 수 있다. 실제 권한은 page/action 진입점의 requireAdmin()
+  //   이 DB 기준으로 최종 판정한다.
 
   return;
 });
