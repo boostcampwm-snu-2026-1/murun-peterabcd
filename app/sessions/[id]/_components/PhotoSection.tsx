@@ -5,6 +5,7 @@ import { useActionState } from "react";
 
 import { ErrorAlert } from "@/components/form/ErrorAlert";
 import { SubmitButton } from "@/components/form/SubmitButton";
+import { encodeUploadPath } from "@/lib/upload-url";
 
 import { uploadSessionPhoto, removeSessionPhoto } from "../photo-actions";
 import { PhotoReplaceButton } from "./PhotoReplaceButton";
@@ -37,7 +38,7 @@ export function PhotoSection({
   const error = uploadError ?? removeError;
 
   if (groupPhotoPath) {
-    const src = `/api/uploads/${encodePath(groupPhotoPath)}`;
+    const src = `/api/uploads/${encodeUploadPath(groupPhotoPath)}`;
     return (
       <section className="mb-6">
         <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
@@ -109,9 +110,3 @@ export function PhotoSection({
   );
 }
 
-function encodePath(relPath: string): string {
-  return relPath
-    .split("/")
-    .map((s) => encodeURIComponent(s))
-    .join("/");
-}

@@ -10,6 +10,7 @@
 //      → 관리자가 승인하면 다음 요청부터 즉시 반영 (재로그인 불필요)
 //   6. session callback 이 user.id/approved/role 을 Session 객체에 노출
 
+import "server-only";
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 
