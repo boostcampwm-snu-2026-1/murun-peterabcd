@@ -8,6 +8,7 @@
 - [01 · 프로젝트 기획서](01-Project-Plan) — 서비스 목표, 타깃, 핵심 기능
 - [02 · 기술 스택 선택과 이유](02-Tech-Stack)
 - [03 · 화면 흐름 / 데이터 모델 초안](03-Screen-Flow)
+- [아키텍처 개요](Architecture-Overview)
 
 ### Agent 개발 워크플로우
 - [04 · Agent 개발 workflow](04-Agent-Workflow)
