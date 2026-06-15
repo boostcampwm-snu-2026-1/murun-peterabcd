@@ -26,8 +26,9 @@
 - [ ] 모바일(375px)에서 폼이 안 깨진다
 - [ ] zod 검증 실패 시 필드 옆에 에러 표시
 - [ ] 성공 시 /sessions/[id] 로 리다이렉트
-- [ ] pnpm typecheck / pnpm lint 통과
-- [ ] tests/<feature>.test.ts 스모크 1개
+- [ ] pnpm typecheck / pnpm lint / pnpm test 통과
+- [ ] 사용자 smoke가 필요한 변경이면 pnpm test:e2e 통과
+- [ ] test/<feature>.test.ts 또는 e2e/<feature>.spec.ts 추가/갱신
 
 [비변경]
 - prisma/schema.prisma 외 schema 파일

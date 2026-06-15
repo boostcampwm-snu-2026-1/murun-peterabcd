@@ -7,7 +7,7 @@
 | 언어 | TypeScript | 풀스택 단일 언어. 타입으로 Agent 실수 차단. |
 | 프레임워크 | **Next.js 15 (App Router, standalone output)** | Server Action·`next/image`·OG 이미지가 본 도메인과 맞음. Vercel 없이도 단일 Node 프로세스로 동작. |
 | 스타일 | **Tailwind CSS + shadcn/ui** | 컴포넌트 코드를 repo가 직접 갖고 있어 Agent가 수정 가능. |
-| 폼/검증 | **react-hook-form + zod** | 클라이언트/서버 동일 스키마. |
+| 폼/검증 | **Server Action + zod/input parser + useActionState** | 서버가 최종 검증을 책임지고, 클라이언트는 inline error와 pending state를 표시. |
 | DB | **SQLite (파일)** | 별도 서버 프로세스 0. 백업 = 파일 1개 복사. 동아리 규모에 과한 게 없음. |
 | ORM | **Prisma** | 타입 안전. SQLite provider 한 줄로 전환. |
 | 인증 | **Auth.js v5 + Google OAuth (`hd: snu.ac.kr` 강제)** | 부원이 이미 가진 SNU 구글 계정 그대로. 이메일 발송 SaaS 0. |
@@ -15,14 +15,14 @@
 | 사진 저장 | **로컬 볼륨 마운트** (`/var/lib/murun/uploads`) | DB와 분리. 원본 그대로 보존. |
 | 이미지 최적화 | **`next/image` + sharp** (서빙 시 webp 변환·디스크 캐시) | 원본 품질 손상 0. N100 CPU 압박 미미. |
 | 호스팅 | **자체 N100 서버** | 부트캠프 후에도 운영 가능. SaaS 의존 최소화. |
-| 컨테이너 | **Docker + docker compose** | staging/prod를 같은 이미지로 동시에. 데이터는 호스트 볼륨. |
+| 컨테이너 | **Docker + docker compose** | prod 단일 환경을 같은 이미지/볼륨 구조로 재현 가능하게 운영. |
 | 리버스 프록시 | **Caddy** | Let's Encrypt 자동, Caddyfile 10줄. |
-| 도메인/HTTPS | **(Week 3) duckdns + Caddy 자동 인증서** | 당장은 IP:port + 로컬 hosts. |
-| 차트 | **Recharts** | Week 3 stretch용. |
-| 테스트 | **Vitest** (필요 시 Playwright 스모크 1개) | 도메인 함수만 단위, e2e는 욕심내지 않음. |
-| 코드 품질 | **ESLint + Prettier** | 기본값. |
-| CI | **GitHub Actions**: lint + typecheck + build → ghcr.io push | N100은 pull만. |
-| CD | **GH Actions → SSH → `docker compose pull && up -d`** | staging은 자동, prod는 수동 승인 후. |
+| 도메인/HTTPS | **duckdns + Caddy 자동 인증서** | `murun.duckdns.org` 기준. Caddy가 HTTP→HTTPS와 인증서 갱신 담당. |
+| 차트 | **SVG 직접 구현** | 러너 페이지의 최근 페이스 추이를 의존성 추가 없이 표시. |
+| 테스트 | **Vitest + React Testing Library + Playwright** | 순수 함수/컴포넌트는 빠르게, 사용자 smoke는 브라우저로 얇게. |
+| 코드 품질 | **ESLint + TypeScript + CI** | 타입/정적분석/테스트/빌드를 PR에서 강제. |
+| CI | **GitHub Actions**: typecheck + lint + test + build + E2E smoke | PR에서 자동 안전망. |
+| CD | **GH Actions → GHCR → SSH → `docker compose pull && up -d`** | main push만 N100 prod 재시작. dev push는 image build 안전망만. |
 | 패키지 매니저 | **pnpm** | Next 친화, 디스크 효율. |
 | 모니터링 (선택) | Uptime Kuma + `docker logs` | 운영 부담 최소화. |
 | 백업 | cron + restic → 외부 디스크 (Week 3) | DB 파일 + uploads 디렉터리만. |
@@ -71,20 +71,21 @@
 - `hd` 파라미터로 @snu.ac.kr 도메인 1차 필터, 관리자 승인이 2차 필터
 - "본인 인증된 사용자가 본인 행을 쓴다"는 게시글-댓글 모델에 필수
 
-콜백 URL은 로컬 = `http://localhost:3000/api/auth/callback/google`, staging = duckdns 연결 후 등록. 도메인 없는 동안엔 로컬 OAuth만 동작 → MVP 진입 후순위는 OAuth 등록.
+콜백 URL은 로컬 = `http://localhost:3000/api/auth/callback/google`, prod = `https://murun.duckdns.org/api/auth/callback/google` 로 등록한다.
 
 ## 3. 환경 변수 초안
 
 ```dotenv
 # .env.example
-DATABASE_URL=file:./data/murun.db
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_HD=snu.ac.kr          # 이메일 도메인 강제
-UPLOADS_DIR=./uploads
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+DATABASE_URL=file:./data/murun.db
+AUTH_URL=http://localhost:3000
+AUTH_SECRET=
+AUTH_TRUST_HOST=true
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+AUTH_GOOGLE_HD=snu.ac.kr
+UPLOADS_DIR=./uploads
 ```
 
 ## 4. 폴더 구조 초안 (Week 2 진입 시점)
@@ -124,10 +125,10 @@ murun-peterabcd/
 │  └─ deploy.sh
 ├─ docs/wiki/
 ├─ .github/workflows/
-│  ├─ ci.yml                    # PR: lint + typecheck + build
-│  └─ deploy.yml                # dev → staging, main → prod
+│  ├─ ci.yml                    # PR: typecheck + lint + test + build + e2e smoke
+│  └─ deploy.yml                # dev → image build only, main → prod deploy
 ├─ .gjc/
-└─ tests/
+└─ test/ + e2e/
 ```
 
 ## 5. 배포 / Docker 구성

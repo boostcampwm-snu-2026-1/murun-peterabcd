@@ -1,6 +1,6 @@
-# 04 · Agent 개발 workflow 흐름 초안
+# 04 · Agent 개발 workflow
 
-> 이 문서는 **내가 Agent와 함께 한 feature를 끝낼 때 따르는 절차**다. 1주차 초안이며, 매주 회고에서 수정한다.
+> 이 문서는 **내가 Agent와 함께 한 feature를 끝낼 때 따르는 절차**다. Week 3 기준 최종본이며, 자세한 회고형 리포트는 [`09-Agent-Workflow-Report`](09-Agent-Workflow-Report)에 둔다.
 
 ## 0. 전제
 
@@ -17,7 +17,7 @@
 > "운영진이 세션을 등록할 수 있다" = Prisma schema 변경 + Server Action + 폼 페이지 + 성공 후 리다이렉트 + 1개 스모크 테스트
 
 이유:
-- 항상 `dev` 브랜치가 동작하는 상태로 유지된다 → preview deploy로 즉시 확인.
+- 항상 기준 브랜치가 동작하는 상태로 유지된다 → PR 단위로 CI와 배포 smoke를 확인한다.
 - 회고/리뷰가 "이 기능 켜고 끄기" 단위로 떨어진다.
 
 ### 1.2 2순위: 그 안에서 컴포넌트 단위로 쪼갬 (선택적)
@@ -44,13 +44,13 @@ Vertical slice가 2시간을 넘기면 안에서 다음 순서로 sub-task를 �
 
 ```
 0. issue 작성             👤    "왜·무엇·수용 기준"을 issue에 먼저 쓴다
-1. spec MD 작성           👤+🤖 .gjc/specs/<feature>.md 1쪽
+1. spec/acceptance 확인   👤+🤖 이번 PR에서 할 일과 안 할 일을 고정
 2. plan                   🤖    spec → 파일 변경 계획. 👤가 검토/수정
-3. branch + scaffold      🤖    feat/<n>-<slug>
-4. implement              🤖    schema → server → ui → test 순서
-5. self-verify           👤    체크포인트 06 통과
-6. PR open                🤖    템플릿 채워서 dev로 PR
-7. squash merge           👤    preview deploy 확인 후
+3. branch + scaffold      🤖    feature/<n>-<slug> 또는 fix/<n>-<slug>
+4. implement              🤖    domain → server → ui → test 순서
+5. self-verify            👤    체크포인트 06 + 테스트 명령 직접 확인
+6. PR open                🤖    issue 연결, 검증 결과, fidelity checklist 포함
+7. squash merge           👤    main merge 시 N100 prod 자동 배포 확인
 ```
 
 ### 단계별 상세
@@ -95,18 +95,21 @@ Agent에게:
 #### 3. branch + scaffold
 
 ```bash
-git switch dev && git pull
-git switch -c feat/12-session-create
+git switch main && git pull
+git switch -c feature/<issue-num>-<slug>
 ```
+
+N100은 prod 단일 운영이므로 배포 대상 변경은 `main` PR로 한다. `dev`는 로컬 통합/실험 브랜치로만 사용하고, dev push는 GHCR staging image build 안전망까지만 둔다.
 
 Agent가 빈 파일 + import 정도만 먼저 만들고 commit. 그래야 그 다음 변경 diff가 작아진다.
 
 #### 4. implement
 
-- **schema → server → ui → test** 순서를 어기지 않는다.
+- **domain → server → ui → test** 순서를 어기지 않는다.
 - schema 변경 후엔 항상 `pnpm prisma generate && pnpm prisma migrate dev --name <slug>`.
-- Server Action은 항상 zod input schema부터.
-- UI는 `loading.tsx` / `error.tsx` / 빈 상태를 포함해 짠다.
+- Server Action은 항상 zod/input parser + guard 호출부터.
+- UI는 inline error, pending state, 빈 상태를 포함해 짠다.
+- Vitest/RTL 또는 Playwright 중 변경 성격에 맞는 테스트를 추가한다.
 
 #### 5. self-verify
 
@@ -118,8 +121,8 @@ PR 본문은 issue 자동 연결(`Closes #N`) + 변경 요약 + 스크린샷(모
 
 #### 7. merge
 
-- preview deploy에서 직접 확인 (로그인까지 한 번 흘려보냄).
-- squash merge로 dev 히스토리 깔끔하게.
+- CI에서 typecheck / lint / unit·component test / build / E2E smoke 확인.
+- main merge 후 N100 prod 자동 배포 결과 확인.
 - merge 후 issue 자동 닫힘 확인.
 
 ## 3. 워크플로우 다이어그램
@@ -153,13 +156,13 @@ PR 본문은 issue 자동 연결(`Closes #N`) + 변경 요약 + 스크린샷(모
          │
          ▼
   ┌──────────────────┐
-  │ PR → dev → merge │  🤖 open / 👤 merge
+  │ PR → main merge  │  🤖 open / 👤 merge
   └──────┬───────────┘
          │
          ▼
   ┌──────────────────┐
-  │ staging 자동 배포 │  👤
-  │ (N100 docker)    │
+  │ N100 prod deploy │  GitHub Actions
+  │ + smoke 확인     │  👤
   └──────────────────┘
 ```
 
@@ -171,8 +174,8 @@ PR 본문은 issue 자동 연결(`Closes #N`) + 변경 요약 + 스크린샷(모
 - **외부 서비스(Google Cloud Console, duckdns, N100 호스트) 콘솔 설정 변경 시도**
 - **요구사항 자체의 수정** (spec MD는 내가 최종본을 가진다)
 
-## 5. 발전 방향 (3주에 걸쳐 다듬을 것)
+## 5. 발전 방향
 
-- Week 1 → 7단계 흐름 정착, spec/plan 템플릿 확정.
-- Week 2 → 자주 쓰는 Agent skill 2~3개 추출 (`session-feature`, `bugfix`, `schema-migration`).
-- Week 3 → "Agent가 만든 PR을 내가 리뷰할 때 보는 패턴"을 별도 문서로.
+- Agent skill을 `/auto-develop <issue>` 수준으로 자동화하되, merge와 prod 배포 판단은 사람이 유지.
+- 인증된 사용자의 핵심 흐름을 Playwright에서 재현할 test-only seed 설계.
+- 배포 후 `/api/health`와 주요 페이지를 확인하는 post-deploy smoke job 추가.

@@ -60,7 +60,7 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
             type="number"
             inputMode="decimal"
             step="0.1"
-            min="0"
+            min="0.01"
             max="1000"
             placeholder="예: 5.0"
             defaultValue={distanceDefault}
