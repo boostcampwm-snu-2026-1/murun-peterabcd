@@ -11,9 +11,9 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm exec prisma migrate deploy && pnpm dev",
     url: "http://127.0.0.1:3000/login",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
       DATABASE_URL: "file:./data/e2e.db",
@@ -24,6 +24,7 @@ export default defineConfig({
       AUTH_GOOGLE_SECRET: "e2e-stub",
       AUTH_GOOGLE_HD: "snu.ac.kr",
       NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3000",
+      E2E_TEST_MODE: "true",
     },
   },
   projects: [

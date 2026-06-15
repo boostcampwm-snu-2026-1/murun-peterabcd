@@ -1,7 +1,7 @@
 // 업로드된 파일 스트리밍 라우트.
 //   - GET /api/uploads/sessions/yyyy/mm/<id>.<ext>
-//   - 인증: requireApproved (승인된 멤버만 사진 조회). OG 이미지(비로그인 허용)는
-//     Week 3 stretch 에서 별도 라우트로 처리.
+//   - 인증: requireApproved (승인된 멤버만 사진 조회). 비로그인 OG 크롤러는
+//     /sessions/[id]/opengraph-image 가 별도 public 이미지로 처리한다.
 //   - 보안: path traversal 차단을 위해 resolveUploadPath 로 prefix 검증.
 
 import { createReadStream } from "node:fs";

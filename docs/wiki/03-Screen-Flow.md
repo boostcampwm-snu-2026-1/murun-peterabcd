@@ -27,7 +27,7 @@
 [모바일] /sessions/new
         ├─ 날짜·장소·시작 시간 (오늘 default)
         ├─ 날씨(자유 텍스트)
-        ├─ 단체사진 1장 업로드
+        ├─ 단체사진 1장 업로드 (생성 후 상세 페이지에서 선택)
         ├─ 코스/메모
         └─ [세션 생성]
         ↓
@@ -72,7 +72,7 @@
 | `/sessions` | 승인된 멤버 | 아카이브 리스트 (최신순 카드) |
 | `/sessions/new` | 승인된 멤버 | 세션 생성 — 누구나 호스트 가능 |
 | `/sessions/[id]` | 승인된 멤버 | 세션 상세 + 본인 기록 추가/수정 |
-| `/sessions/[id]/edit` | 호스트 본인 또는 ADMIN | 세션 본문 수정 |
+| `/sessions/[id]/edit` | 호스트 본인 또는 ADMIN | 세션 본문 수정/삭제 |
 | `/sessions/[id]/opengraph-image` | 비로그인 OK (OG 크롤러용) | 단체사진 기반 OG 이미지 |
 | `/me` | 본인 | 내 참여 기록 모음, (Week 3) 누적 통계 |
 | `/runners/[id]` | 승인된 멤버 | 다른 멤버의 통계 (Week 3) |
@@ -103,9 +103,9 @@
 ```
 
 권한 표시:
-- 호스트면 헤더에 "수정" 버튼
-- 본인 행에만 ✏️ 노출
-- 다른 사람 행은 읽기 전용 (ADMIN 제외)
+- 호스트/ADMIN이면 헤더에 "세션 수정" 버튼
+- 본인 행에만 (나) 표시
+- 다른 사람 행은 읽기 전용 (ADMIN 수정은 보류)
 
 ### `/sessions/new` (호스트)
 
@@ -132,63 +132,70 @@ generator client { provider = "prisma-client-js" }
 datasource db    { provider = "sqlite"; url = env("DATABASE_URL") }
 
 model User {
-  id           String   @id @default(cuid())
-  googleSub    String   @unique           // Google OAuth subject id
-  email        String   @unique           // @snu.ac.kr 강제
-  name         String
-  avatarUrl    String?
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
 
-  approved     Boolean  @default(false)
+  approved     Boolean   @default(false)
   approvedById String?
   approvedAt   DateTime?
-  approvedBy   User?    @relation("Approver", fields: [approvedById], references: [id])
-  approves     User[]   @relation("Approver")
+  approvedBy   User?     @relation("Approver", fields: [approvedById], references: [id])
+  approves     User[]    @relation("Approver")
 
-  role         Role     @default(MEMBER)
-  joinedAt     DateTime @default(now())
+  role          String    @default("MEMBER") // "MEMBER" | "ADMIN"
+  joinedAt      DateTime  @default(now())
 
-  hostedSessions  Session[]       @relation("Host")
-  participations  Participation[]
+  accounts       Account[]
+  hostedSessions Session[]       @relation("Host")
+  participations Participation[]
 }
 
-enum Role { MEMBER  ADMIN }
+model Account {
+  id                String @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
 
 model Session {
-  id           String   @id @default(cuid())
-  date         DateTime              // 활동일 (date only)
-  startTime    String?               // "19:30" 표시용
-  location     String
-  weather      String?               // 자유 텍스트
-  groupPhotoPath String?             // 호스트 디스크 상대 경로 (uploads/yyyy/mm/xxx.jpg)
-  notes        String?               // 코스 메모
+  id             Int      @id @default(autoincrement())
+  date           DateTime
+  startTime      String?
+  location       String
+  weather        String?
+  groupPhotoPath String?
+  notes          String?
 
-  hostId       String
-  host         User     @relation("Host", fields: [hostId], references: [id])
-
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  hostId         String
+  host           User     @relation("Host", fields: [hostId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   participations Participation[]
 
   @@index([date])
+  @@index([hostId])
 }
 
 model Participation {
   id          String   @id @default(cuid())
-  sessionId   String
+  sessionId   Int
   userId      String
-
-  distanceKm  Float?   // null = 참여만, 미측정
-  durationSec Int?     // null = 미측정
+  distanceKm  Float?
+  durationSec Int?
   note        String?
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id])
 
-  @@unique([sessionId, userId])      // 본인은 세션당 1행만
+  @@unique([sessionId, userId])
   @@index([userId])
 }
 ```
@@ -210,7 +217,7 @@ model Participation {
 | 세션 본문 수정 | ❌ | ✅ | ✅ |
 | 세션 삭제 | ❌ | ✅ | ✅ |
 | 본인 참여 행 추가/수정/삭제 | ✅ | (본인 행이면) ✅ | ✅ |
-| 다른 사람 참여 행 수정 | ❌ | ❌ | ✅ |
+| 다른 사람 참여 행 수정 | ❌ | ❌ | 보류 |
 | 멤버 승인/거절 | ❌ | ❌ | ✅ |
 
 이 표가 **Server Action 권한 체크의 진실의 원천**. [`SKILL.md`](https://github.com/boostcampwm-snu-2026-1/murun-peterabcd/blob/main/.gjc/skills/murun-feature/SKILL.md)에서 참조.
@@ -224,5 +231,5 @@ model Participation {
 
 - 모든 입력 ≥ 44px 터치 타깃
 - 페이스는 색상 의존 X, 텍스트 명시
-- 다크모드는 Week 3 stretch
+- 다크모드는 후속 TODO
 - 사진 alt 텍스트: "{date} {location} 단체사진"

@@ -99,11 +99,12 @@ docker compose -p murun-prod --env-file .env.prod pull
 docker compose -p murun-prod --env-file .env.prod up -d
 ```
 
-헬스체크:
+헬스체크 / smoke:
 
 ```bash
 docker compose -p murun-prod --env-file .env.prod ps
 curl -fsS http://localhost/api/health && echo OK
+curl -fsS "http://localhost/login?error=Configuration" | grep "Google 로그인 설정"
 ```
 
 ## 2. 업데이트 배포 (수동)
@@ -125,7 +126,26 @@ docker image prune -f
 | `murun-prod_uploads`     | `/var/lib/docker/volumes/murun-prod_uploads/_data`     | 단체사진 원본 + next/image 캐시 |
 | `murun-prod_caddy_data`  | `/var/lib/docker/volumes/murun-prod_caddy_data/_data`  | Let's Encrypt 인증서 |
 
-백업 cron 은 후속 작업 (`scripts/backup.sh`).
+백업 자동화는 보류. 현재 백업 대상은 위 두 volume(`murun-prod_data`, `murun-prod_uploads`)이며, 자동화 전에는 수동 복사로 대응한다.
+
+업로드 orphan 파일 점검:
+
+```bash
+cd ~/murun-peterabcd
+pnpm install --frozen-lockfile
+
+# dry-run: DB Session.groupPhotoPath 에서 참조하지 않는 uploads/sessions 파일 목록
+DATABASE_URL=file:/var/lib/docker/volumes/murun-prod_data/_data/murun.db \
+UPLOADS_DIR=/var/lib/docker/volumes/murun-prod_uploads/_data \
+pnpm uploads:cleanup
+
+# 실제 삭제
+DATABASE_URL=file:/var/lib/docker/volumes/murun-prod_data/_data/murun.db \
+UPLOADS_DIR=/var/lib/docker/volumes/murun-prod_uploads/_data \
+pnpm uploads:cleanup:write
+```
+
+compose 환경에서는 `UPLOADS_DIR`가 `/app/uploads`로 잡혀 있으므로, 호스트에서 직접 실행할 때는 필요하면 `UPLOADS_DIR`를 Docker volume 경로로 지정한다.
 
 ## 4. 롤백
 

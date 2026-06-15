@@ -46,7 +46,8 @@ PR 규칙:
 | 작업 단위 | feature 단위 (vertical slice) — [`docs/wiki/04-Agent-Workflow.md`](./docs/wiki/04-Agent-Workflow.md) 참고 |
 | Agent skill | [`.gjc/skills/murun-feature/SKILL.md`](./.gjc/skills/murun-feature/SKILL.md) |
 | Week 3 워크플로우 리포트 | [`docs/wiki/09-Agent-Workflow-Report.md`](./docs/wiki/09-Agent-Workflow-Report.md) |
-| 회고 | [`docs/wiki/Retrospective-Week1.md`](./docs/wiki/Retrospective-Week1.md), [`docs/wiki/Retrospective-Week2.md`](./docs/wiki/Retrospective-Week2.md) |
+| 회고 | [`docs/wiki/Retrospective-Week1.md`](./docs/wiki/Retrospective-Week1.md), [`docs/wiki/Retrospective-Week2.md`](./docs/wiki/Retrospective-Week2.md), [`docs/wiki/08-Retrospective-Week3.md`](./docs/wiki/08-Retrospective-Week3.md) |
+| 후속 TODO | [`docs/wiki/10-Backlog-and-Decisions.md`](./docs/wiki/10-Backlog-and-Decisions.md) |
 
 ## 5. 빠른 시작
 
@@ -81,7 +82,7 @@ pnpm db:studio                  # 또는 sqlite3 ./data/murun.db
 - Application type: Web application
 - Authorized redirect URIs:
   - `http://localhost:3000/api/auth/callback/google`
-  - (배포 후) `https://<도메인>/api/auth/callback/google`
+  - `https://murun.duckdns.org/api/auth/callback/google`
 
 발급된 client ID/secret 을 `.env.local` 의 `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` 에 넣기. `AUTH_SECRET` 은 `openssl rand -base64 32` 로 생성.
 
