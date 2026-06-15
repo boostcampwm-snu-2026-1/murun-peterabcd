@@ -26,6 +26,7 @@ export const authConfig = {
   ],
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     // signIn callback 의 도메인 검증은 server-only (DB 안 건드리지만 안전하게 lib/auth 에 둔다).
