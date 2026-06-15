@@ -24,16 +24,17 @@
 ## 3. 브랜치 전략
 
 ```
-main   ← 배포 가능한 상태만 (보호 브랜치, dev → main PR로만 merge)
-dev    ← 통합 브랜치, 모든 feature가 PR로 모임
-feat/* ← 작업 단위. PR 대상은 항상 dev
-fix/*  ← 버그 수정
-chore/*← 설정/문서/리팩터링
+main        ← N100 prod 배포 기준. 항상 배포 가능한 상태만 유지
+feature/*   ← 기능/품질 개선 작업. PR 대상은 main
+fix/*       ← prod 버그 수정. PR 대상은 main
+chore/*     ← 설정/문서/리팩터링. PR 대상은 main
+dev         ← 로컬 통합/실험 브랜치. N100에는 배포하지 않음
 ```
 
 PR 규칙:
-- `feat/* → dev` 는 self-review + 체크리스트 통과 후 merge (squash)
-- `dev → main` 은 매주 마지막에 배포 가능 상태에서 merge
+- 의미 있는 task 1개 = PR 1개 (atomic PR)
+- `feature/*`, `fix/*`, `chore/* → main` 은 self-review + CI 통과 후 squash merge
+- `main` merge 시 GitHub Actions가 GHCR prod image build/push 후 N100 prod를 재시작
 - PR 제목: `[feat] 세션 등록 폼 (#12)` 형태
 
 ## 4. 개발/문서 관리
@@ -44,7 +45,8 @@ PR 규칙:
 | Task 관리 | [GitHub Issues](https://github.com/boostcampwm-snu-2026-1/murun-peterabcd/issues) |
 | 작업 단위 | feature 단위 (vertical slice) — [`docs/wiki/04-Agent-Workflow.md`](./docs/wiki/04-Agent-Workflow.md) 참고 |
 | Agent skill | [`.gjc/skills/murun-feature/SKILL.md`](./.gjc/skills/murun-feature/SKILL.md) |
-| 회고 | [`docs/wiki/Retrospective-Week1.md`](./docs/wiki/Retrospective-Week1.md) |
+| Week 3 워크플로우 리포트 | [`docs/wiki/09-Agent-Workflow-Report.md`](./docs/wiki/09-Agent-Workflow-Report.md) |
+| 회고 | [`docs/wiki/Retrospective-Week1.md`](./docs/wiki/Retrospective-Week1.md), [`docs/wiki/Retrospective-Week2.md`](./docs/wiki/Retrospective-Week2.md) |
 
 ## 5. 빠른 시작
 
@@ -86,11 +88,19 @@ pnpm db:studio                  # 또는 sqlite3 ./data/murun.db
 체크:
 
 ```bash
-pnpm typecheck    # tsc --noEmit
-pnpm lint         # eslint .
-pnpm build        # Next.js 빌드 (Windows에선 standalone 비활성)
-pnpm check        # 위 셋 일괄
+pnpm typecheck       # tsc --noEmit
+pnpm lint            # eslint .
+pnpm test            # Vitest unit/component tests
+pnpm test:coverage   # coverage report (참고 지표)
+pnpm test:e2e        # Playwright smoke tests (최초 1회: pnpm exec playwright install chromium)
+pnpm build           # Next.js 빌드 (Windows에선 standalone 비활성)
+pnpm check           # typecheck + lint + test + build
 ```
+
+테스트 전략:
+- 순수 함수/검증 로직은 Vitest로 빠르게 고정한다.
+- props in → UI out 컴포넌트는 React Testing Library로 label/role/text 기준 검증한다.
+- Playwright는 느리므로 로그인 화면/오류 안내처럼 깨지면 치명적인 smoke만 둔다.
 
 ### 자체 서버 (N100) 배포
 

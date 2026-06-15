@@ -2,11 +2,12 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { requireApproved } from "@/lib/guard";
+import { listApprovedMembers, listSessions } from "@/lib/sessions";
 import {
-  listApprovedMembers,
-  listSessions,
-  type SessionFilters,
-} from "@/lib/sessions";
+  buildSessionArchiveHref,
+  parseSessionArchiveParams,
+  type SessionArchiveSearchParams,
+} from "@/lib/session-filters";
 
 import { EmptyState } from "./_components/EmptyState";
 import { FilterBar } from "./_components/FilterBar";
@@ -14,14 +15,7 @@ import { SessionCard } from "./_components/SessionCard";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = {
-  cursor?: string;
-  q?: string;
-  member?: string;
-  month?: string;
-  pmin?: string;
-  pmax?: string;
-};
+type SearchParams = SessionArchiveSearchParams;
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -31,21 +25,7 @@ export default async function SessionsArchivePage({ searchParams }: PageProps) {
   await requireApproved();
 
   const sp = await searchParams;
-  const cursorId = parseCursor(sp.cursor);
-  const filters: SessionFilters = {
-    q: sp.q?.trim() || undefined,
-    memberId: sp.member?.trim() || undefined,
-    month: sp.month?.trim() || undefined,
-    pmin: parsePositiveInt(sp.pmin),
-    pmax: parsePositiveInt(sp.pmax),
-  };
-  const hasActiveFilters = Boolean(
-    filters.q ||
-      filters.memberId ||
-      filters.month ||
-      filters.pmin != null ||
-      filters.pmax != null,
-  );
+  const { cursorId, filters, hasActiveFilters } = parseSessionArchiveParams(sp);
 
   const [page, members] = await Promise.all([
     listSessions({ cursorId, filters }),
@@ -54,7 +34,7 @@ export default async function SessionsArchivePage({ searchParams }: PageProps) {
 
   const nextHref =
     page.nextCursorId != null
-      ? buildHref({ ...sp, cursor: String(page.nextCursorId) })
+      ? buildSessionArchiveHref({ ...sp, cursor: String(page.nextCursorId) })
       : null;
 
   return (
@@ -127,27 +107,3 @@ function EmptyFilterResult() {
   );
 }
 
-function parseCursor(raw: string | undefined): number | undefined {
-  if (!raw) return undefined;
-  const n = Number.parseInt(raw, 10);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
-}
-
-function parsePositiveInt(raw: string | undefined): number | undefined {
-  if (raw == null || raw === "") return undefined;
-  const n = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n) || n < 0) return undefined;
-  return n;
-}
-
-/**
- * 기존 searchParams 를 유지하면서 cursor 만 갈아끼운 URL.
- */
-function buildHref(params: Record<string, string | undefined>): string {
-  const q = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v != null && v !== "") q.set(k, v);
-  }
-  const s = q.toString();
-  return s ? `/sessions?${s}` : "/sessions";
-}

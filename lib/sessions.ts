@@ -9,6 +9,7 @@ import "server-only";
 import type { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
+import { parseMonthRange } from "@/lib/session-filters";
 
 export const PAGE_SIZE = 20;
 
@@ -44,22 +45,6 @@ export type SessionFilters = {
   pmax?: number;
 };
 
-function parseMonthRange(month: string | undefined): {
-  start: Date;
-  endExclusive: Date;
-} | null {
-  if (!month) return null;
-  const m = /^(\d{4})-(\d{2})$/.exec(month);
-  if (!m) return null;
-  const year = Number.parseInt(m[1], 10);
-  const mm = Number.parseInt(m[2], 10);
-  if (!Number.isFinite(year) || mm < 1 || mm > 12) return null;
-  // UTC 기준의 month boundary. createSession 이 date 를 UTC 정오로 저장하므로
-  // KST 사용자에게도 동일 month 가 매칭됨.
-  const start = new Date(Date.UTC(year, mm - 1, 1));
-  const endExclusive = new Date(Date.UTC(year, mm, 1));
-  return { start, endExclusive };
-}
 
 async function idsByParticipantCount(
   pmin: number | undefined,

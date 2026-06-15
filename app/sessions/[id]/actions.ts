@@ -5,18 +5,13 @@ import { z } from "zod";
 
 import { db } from "@/lib/db";
 import { requireApproved } from "@/lib/guard";
-import { parseOptionalNumber } from "@/lib/pace";
+import { parseParticipationForm } from "@/lib/participation-form";
 
 export type ParticipationResult =
   | { ok: true }
   | { ok: false; error: string };
 
 const sessionIdSchema = z.coerce.number().int().positive();
-const noteSchema = z
-  .string()
-  .max(500, "메모는 500자 이내로 입력하세요.")
-  .optional()
-  .or(z.literal(""));
 
 function parseSessionIdField(formData: FormData): ParticipationResult & {
   value?: number;
@@ -51,57 +46,9 @@ export async function upsertParticipation(
     return { ok: false, error: "세션을 찾을 수 없습니다." };
   }
 
-  // 거리: 0 보다 커야 함, 1000 이하
-  const distance = parseOptionalNumber(formData.get("distanceKm"), {
-    min: 0.01,
-    max: 1000,
-    field: "거리(km)",
-  });
-  if (distance.error) return { ok: false, error: distance.error };
-
-  // 분: 0 ~ 1440
-  const minutes = parseOptionalNumber(formData.get("durationMin"), {
-    min: 0,
-    max: 1440,
-    field: "분",
-    integer: true,
-  });
-  if (minutes.error) return { ok: false, error: minutes.error };
-
-  // 초: 0 ~ 59 (60 이상은 분으로 표현하라는 의미)
-  const seconds = parseOptionalNumber(formData.get("durationSec"), {
-    min: 0,
-    max: 59,
-    field: "초",
-    integer: true,
-  });
-  if (seconds.error) return { ok: false, error: seconds.error };
-
-  let durationSec: number | null;
-  if (minutes.value == null && seconds.value == null) {
-    durationSec = null;
-  } else {
-    durationSec = (minutes.value ?? 0) * 60 + (seconds.value ?? 0);
-    if (durationSec <= 0) durationSec = null;
-  }
-
-  const noteParsed = noteSchema.safeParse(formData.get("note") ?? "");
-  if (!noteParsed.success) {
-    return {
-      ok: false,
-      error:
-        noteParsed.error.issues[0]?.message ?? "메모가 올바르지 않습니다.",
-    };
-  }
-  const noteValue = (noteParsed.data ?? "").trim();
-  const note = noteValue ? noteValue : null;
-
-  if (distance.value == null && durationSec == null && !note) {
-    return {
-      ok: false,
-      error: "거리 / 기록 / 메모 중 최소 한 가지를 입력하세요.",
-    };
-  }
+  const parsedParticipation = parseParticipationForm(formData);
+  if (!parsedParticipation.ok) return parsedParticipation;
+  const { distanceKm, durationSec, note } = parsedParticipation.value;
 
   await db.participation.upsert({
     where: {
@@ -110,12 +57,12 @@ export async function upsertParticipation(
     create: {
       sessionId,
       userId: user.id,
-      distanceKm: distance.value,
+      distanceKm,
       durationSec,
       note,
     },
     update: {
-      distanceKm: distance.value,
+      distanceKm,
       durationSec,
       note,
     },

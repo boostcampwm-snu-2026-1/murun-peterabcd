@@ -18,7 +18,7 @@
 - **데이터 모델 진실의 원천**: `prisma/schema.prisma`
 - **권한 매트릭스 진실의 원천**: [`docs/wiki/03-Screen-Flow.md`](../../../docs/wiki/03-Screen-Flow.md) §5
 - **인증/권한 진입점**: `lib/auth.ts` (Auth.js config) + `lib/guard.ts` (`requireApproved`, `requireAdmin`, `requireHost(sessionId)`). Server Action 첫 줄에서 호출.
-- **PR 대상은 항상 `dev`**. `main`에는 절대 직접 PR/커밋 금지.
+- **브랜치 정책**: prod 배포 대상 작업은 `main` 기준 feature/fix 브랜치에서 시작해 `main` PR로 끝낸다. `dev`는 로컬 통합/실험 브랜치이며 N100에는 배포하지 않는다.
 
 ## Steps
 
@@ -43,16 +43,19 @@ Schema 변경이 있다면 별도로:
 
 ### 3. Branch
 ```bash
-git switch dev && git pull
-git switch -c feat/<issue-num>-<slug>
+git switch main && git pull
+git switch -c feature/<issue-num>-<slug>
 ```
 
+버그 수정은 `fix/<issue-num>-<slug>` 를 쓴다. `dev`에서 시작하는 작업은 N100 prod 배포 대상이 아닌 실험/통합 작업으로 제한한다.
+
 ### 4. Implement (순서 고정)
-1. `prisma/schema.prisma` 수정 → `pnpm prisma migrate dev --name <slug>` **명령어만 출력**, 사용자 실행 대기
-2. `lib/...` 의 Server Action (**zod schema → guard 호출(인증/권한) → 비즈니스 로직 → revalidate**)
-3. `app/(app)/...` 의 page/component
-4. `loading.tsx`, `error.tsx`, 빈 상태 처리 누락 없는지 확인
-5. `tests/<feature>.test.ts` 스모크 1개 (도메인 함수 위주, e2e는 욕심내지 않음)
+1. 도메인/검증 로직을 `lib/...` 순수 함수로 먼저 분리한다.
+2. schema 변경이 있으면 `prisma/schema.prisma` 수정 → `pnpm prisma migrate dev --name <slug>` **명령어만 출력**, 사용자 실행 대기
+3. Server Action (**input parser/zod → guard 호출(인증/권한) → 비즈니스 로직 → revalidate**)
+4. `app/...` 의 page/component
+5. `loading.tsx`, `error.tsx`, 빈 상태, inline error, pending state 누락 없는지 확인
+6. 테스트 추가: 순수 함수는 Vitest, 컴포넌트는 RTL, 사용자 smoke는 Playwright
 
 ### 4.5 폼/입력이 들어가는 경우 (강제)
 
@@ -77,7 +80,7 @@ PR #28, #29 의 사고 (silent noop, 더블 클릭 row 중복) 가 이 단계 �
   - client/server 가 같은 상수(`lib/upload-limits.ts`) 를 import 하는가 — 두 곳이 어긋나면 메시지/제한 불일치
 
 ### 5. Self-check
-[`docs/wiki/06-Checkpoints.md`](../../../docs/wiki/06-Checkpoints.md) 의 7개 항목을 PR 본문에 박은 채로 사용자가 직접 확인하도록 둔다. Agent는 박스를 자기가 채우지 않는다.
+[`docs/wiki/06-Checkpoints.md`](../../../docs/wiki/06-Checkpoints.md) 의 7개 항목을 PR 본문에 박은 채로 사용자가 직접 확인하도록 둔다. Agent는 박스를 자기가 채우지 않는다. 코드 변경이면 최소 `pnpm check`, smoke가 있으면 `pnpm test:e2e` 결과를 함께 남긴다.
 
 ### 6. PR 본문 작성
 - `Closes #<issue-num>`
@@ -87,7 +90,7 @@ PR #28, #29 의 사고 (silent noop, 더블 클릭 row 중복) 가 이 단계 �
 
 ## Hard constraints (절대 금지)
 - `prisma migrate deploy`, `prisma db push` 직접 실행
-- `main` 브랜치 변경 / merge
+- `main` 브랜치에 직접 커밋하거나 PR 없이 merge
 - `.env*` 파일에 실제 키 작성
 - **외부 콘솔 변경 시도**: Google Cloud Console (OAuth 클라이언트), duckdns, N100 호스트 SSH 명령, Docker compose 직접 실행
 - spec에 없는 기능 추가
@@ -97,6 +100,7 @@ PR #28, #29 의 사고 (silent noop, 더블 클릭 row 중복) 가 이 단계 �
 ## Done criteria
 - 작업이 끝나면 다음을 출력한다:
   1. 변경 파일 목록
-  2. 사용자가 직접 실행해야 할 명령어 목록 (`prisma migrate dev`, env 추가, 외부 콘솔 등록 등)
-  3. 미해결 TODO (있다면)
-  4. PR 본문 (markdown)
+  2. 실행한 검증 명령어와 결과
+  3. 사용자가 직접 실행해야 할 명령어 목록 (`prisma migrate dev`, env 추가, 외부 콘솔 등록 등)
+  4. 미해결 TODO (있다면)
+  5. PR 본문 (markdown)

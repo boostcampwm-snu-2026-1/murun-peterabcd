@@ -10,9 +10,10 @@
 - [03 · 화면 흐름 / 데이터 모델 초안](03-Screen-Flow)
 
 ### Agent 개발 워크플로우
-- [04 · Agent 개발 workflow 흐름 초안](04-Agent-Workflow)
+- [04 · Agent 개발 workflow](04-Agent-Workflow)
 - [05 · 프롬프트 패턴 모음](05-Prompt-Patterns)
 - [06 · 직접 검증/판단 체크포인트](06-Checkpoints)
+- [09 · Week 3 Agent 워크플로우 기술 리포트](09-Agent-Workflow-Report)
 
 ### 진행 기록
 - [회고 · Week 1](Retrospective-Week1)
@@ -26,8 +27,8 @@
 | 주차 | 목표 | 산출물 |
 |------|------|--------|
 | 1 | 기획 + 워크플로우 초안 | wiki 문서, issue 목록, agent skill 초안, 프로토타입(선택) |
-| 2 | MVP 구현 | 세션 생성·참여 기록·사진·OAuth 로그인·승인 흐름·staging 배포 |
-| 3 | 완성도/아카이브 경험 | 통계, 검색/필터, 모바일 다듬기, 운영 문서 |
+| 2 | MVP 구현 | 세션 생성·참여 기록·사진·OAuth 로그인·승인 흐름·N100 배포 초안 |
+| 3 | 완성도/아카이브 경험 | 통계, 검색/필터, 테스트 안전망, prod 운영 문서 |
 
 ## 운영 원칙
 

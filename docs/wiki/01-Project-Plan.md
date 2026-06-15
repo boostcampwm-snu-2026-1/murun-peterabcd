@@ -52,7 +52,7 @@
 - [ ] **세션 아카이브 리스트**: 최신순 카드. 참여 인원 수 표시.
 - [ ] **OG 이미지**: 세션 URL을 단톡방에 던지면 단체사진 미리보기
 - [ ] **모바일 375px** 정상 동작
-- [ ] **N100에 staging 배포** 완료 (도메인은 추후 duckdns)
+- [ ] **N100 prod 배포** 완료 (`murun.duckdns.org` + HTTPS)
 
 ## 7. Week 3 확장 (Stretch)
 
@@ -79,14 +79,14 @@
 | 호스트의 세션 생성 시간 (모바일) | ≤ 90초 |
 | 참여자의 본인 기록 입력 시간 | ≤ 30초 |
 | Lighthouse Performance (모바일) | ≥ 80 |
-| 빌드·배포 자동화 | dev push → staging 자동 배포 |
+| 빌드·배포 자동화 | main push → prod 자동 배포, dev push → image build 안전망 |
 | 내 워크플로우로 구현한 feature 비율 | ≥ 70% |
 
 ## 10. 리스크와 대응
 
 | 리스크 | 영향 | 대응 |
 |--------|------|------|
-| Google OAuth 콜백이 도메인 없이 안 됨 | 로컬/임시 staging 인증 안 됨 | 로컬은 `localhost` 콜백 등록, 임시 staging은 IP:port 직접 / duckdns 우선 적용 |
+| Google OAuth 콜백이 도메인 없이 안 됨 | prod 로그인 실패 | 로컬은 `localhost` 콜백, prod는 `https://murun.duckdns.org/api/auth/callback/google` 등록 |
 | 가정 회선 다운/정전 | 서비스 중단 | UPS는 추후. 우선 백업(주 1회 cron으로 SQLite 파일·uploads dir 외부 복사) |
 | 단체사진 원본 크기 큼 (모바일 5~10MB) | 업로드 느림 | 클라이언트 리사이즈 X, 대신 업로드 상한 15MB + 진행률 UI. `next/image`가 서빙 시 webp 변환. |
 | 호스트 승인 대기 중 부원이 로그인해도 못 씀 | 운영 부담 | "승인 대기" 안내 페이지로 명확히 → 관리자가 단톡방 보고 1분 내 승인 |
