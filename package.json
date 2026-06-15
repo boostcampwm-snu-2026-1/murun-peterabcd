@@ -19,6 +19,8 @@
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
     "db:reset": "prisma migrate reset",
+    "uploads:cleanup": "node scripts/cleanup-orphan-uploads.mjs",
+    "uploads:cleanup:write": "node scripts/cleanup-orphan-uploads.mjs --write",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -34,6 +36,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.4.3"

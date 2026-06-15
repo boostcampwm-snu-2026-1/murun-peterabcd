@@ -59,7 +59,7 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
             name="distanceKm"
             type="number"
             inputMode="decimal"
-            step="0.1"
+            step="0.01"
             min="0.01"
             max="1000"
             placeholder="예: 5.0"

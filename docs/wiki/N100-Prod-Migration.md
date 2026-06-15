@@ -226,7 +226,7 @@ sudo tar czf ~/murun-backup-$(date +%Y%m%d).tar.gz \
   /var/lib/docker/volumes/murun-prod_uploads/_data
 ```
 
-cron 등록은 추후 (`scripts/backup.sh`).
+백업 자동화는 3주차에서 보류 결정. 자동화 전에는 SQLite volume과 uploads volume을 수동 복사하고, 이후 복구 리허설까지 포함해 별도 작업으로 진행한다.
 
 ---
 

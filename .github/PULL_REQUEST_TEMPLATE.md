@@ -15,9 +15,9 @@ Closes #
 
 ### 공통
 - [ ] diff 처음부터 끝까지 읽음
-- [ ] `pnpm typecheck` / `pnpm lint` / `pnpm build` 통과
-- [ ] preview deploy URL에서 시나리오 1회 실행
-- [ ] 새 env / dep 있다면 `.env.example`·README 업데이트
+- [ ] `pnpm typecheck` / `pnpm lint` / `pnpm test` / `pnpm build` 통과
+- [ ] 사용자 흐름 변경이면 `pnpm test:e2e` 또는 prod/로컬 smoke 1회 실행
+- [ ] 새 env / dep / script 있다면 `.env.example`·README·Wiki 업데이트
 
 ### UI 변경 시
 - [ ] 모바일 375px 가로 스크롤 없음
@@ -26,8 +26,9 @@ Closes #
 
 ### 데이터 쓰기 시
 - [ ] Server Action 첫 줄에 인증·권한 체크
-- [ ] zod 스키마 통과
+- [ ] zod 또는 input parser 검증 통과
 - [ ] 중복 생성 차단 (DB unique 또는 트랜잭션)
+- [ ] negative case(빈 값/범위 밖/권한 없음)를 테스트나 smoke로 확인
 
 ### Schema/Migration 시
 - [ ] migration 이름 의미 있음

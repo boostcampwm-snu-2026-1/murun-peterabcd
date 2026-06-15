@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { db } from "@/lib/db";
+import { Button } from "@/components/ui/button";
 import { requireApproved } from "@/lib/guard";
 import {
   calcPaceSecPerKm,
@@ -85,27 +86,34 @@ export default async function SessionDetailPage({ params }: PageProps) {
         </Link>
       </nav>
 
-      <header className="mb-6 flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {formatDateHeader(sessionRow.date)} · {sessionRow.location}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {sessionRow.startTime && (
-            <span>시작 {sessionRow.startTime} · </span>
-          )}
-          {sessionRow.weather && <span>{sessionRow.weather} · </span>}
-          호스트:{" "}
-          <Link
-            href={
-              sessionRow.host.id === user.id
-                ? "/me"
-                : `/runners/${sessionRow.host.id}`
-            }
-            className="underline-offset-4 hover:underline"
-          >
-            {sessionRow.host.name}
-          </Link>
-        </p>
+      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {formatDateHeader(sessionRow.date)} · {sessionRow.location}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {sessionRow.startTime && (
+              <span>시작 {sessionRow.startTime} · </span>
+            )}
+            {sessionRow.weather && <span>{sessionRow.weather} · </span>}
+            호스트:{" "}
+            <Link
+              href={
+                sessionRow.host.id === user.id
+                  ? "/me"
+                  : `/runners/${sessionRow.host.id}`
+              }
+              className="underline-offset-4 hover:underline"
+            >
+              {sessionRow.host.name}
+            </Link>
+          </p>
+        </div>
+        {isHostOrAdmin && (
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/sessions/${sessionRow.id}/edit`}>세션 수정</Link>
+          </Button>
+        )}
       </header>
 
       <PhotoSection

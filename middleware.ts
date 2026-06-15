@@ -15,6 +15,42 @@ export default auth((req) => {
 
   const path = nextUrl.pathname;
 
+  if (
+    process.env.E2E_TEST_MODE === "true" &&
+    process.env.NODE_ENV !== "production" &&
+    req.headers.get("x-murun-e2e-email")
+  ) {
+    const response = NextResponse.next();
+    response.cookies.set(
+      "murun-e2e-email",
+      req.headers.get("x-murun-e2e-email")!,
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      },
+    );
+    response.cookies.set(
+      "murun-e2e-name",
+      req.headers.get("x-murun-e2e-name") ?? "E2E Runner",
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      },
+    );
+    response.cookies.set(
+      "murun-e2e-role",
+      req.headers.get("x-murun-e2e-role") ?? "MEMBER",
+      {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      },
+    );
+    return response;
+  }
+
   // 카톡/슬랙 등 외부 미리보기 크롤러용 OG/twitter 이미지 — 의도적으로 public.
   // 메타데이터(날짜/장소/사진) 노출은 동아리 내부 서비스 + URL 추측이 아주 어렵지 않은
   // 점을 알면서도, 카톡 공유 UX 가치를 더 크게 봐서 수용.

@@ -177,12 +177,13 @@ Week 3에서 테스트 피라미드를 실제 repo에 넣었다.
 - `/admin/members`가 middleware의 오래된 role 정보 때문에 404가 되던 문제를 실제 prod 증상 기준으로 고쳤다.
 - 참여 기록의 “거리/기록/메모 중 최소 한 가지” 같은 도메인 규칙을 서버 예외가 아니라 사용자가 이해 가능한 inline error로 바꿨다.
 - 마지막 주차에는 그 동작들을 테스트로 고정했다.
+- dogfooding 이후 세션 수정/삭제 UI와 인증된 사용자 E2E smoke까지 추가했다.
 
 ## 8. 교육 이후 개선 TODO
 
-- [ ] Playwright에 인증 우회용 test-only seed를 설계해서 “세션 생성 → 참여 기록 → 사진 업로드”까지 자동 E2E로 확장
-- [ ] PR template에 `pnpm test`, `pnpm test:e2e`, 배포 smoke 결과 칸 추가
+- [x] Playwright에 non-production E2E bypass를 설계해서 “세션 생성 → 참여 기록 → 세션 수정/삭제” smoke 추가
+- [x] PR template에 `pnpm test`, `pnpm test:e2e`, 배포 smoke 기준 추가
 - [ ] `.gjc/skills/murun-feature`를 `/auto-develop <issue>`에 더 가깝게 자동화
-- [ ] N100 배포 후 `/api/health`와 주요 페이지를 확인하는 post-deploy smoke job 추가
+- [x] N100 배포 후 `/api/health`와 로그인 오류 안내를 확인하는 post-deploy smoke 추가
 - [ ] DB 백업/복구 리허설을 정기 작업으로 분리
 - [ ] 모바일 실제 기기 QA 체크리스트 추가

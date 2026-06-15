@@ -32,6 +32,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE: ${{ github.repository }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -164,4 +165,17 @@ jobs:
             trap on_error ERR
             docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" pull
             docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" up -d --remove-orphans
+            echo "::group::post-deploy smoke"
+            for i in $(seq 1 30); do
+              if docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" exec -T app node -e "fetch('http://127.0.0.1:3000/api/health').then(async (r) => { const j = await r.json(); if (!r.ok || !j.ok) process.exit(1); }).catch((e) => { console.error(e); process.exit(1); })"; then
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "health smoke failed"
+                exit 1
+              fi
+              sleep 2
+            done
+            docker compose -p murun-${{ needs.build.outputs.target }} --env-file "$MURUN_ENV_FILE" exec -T app node -e "fetch('http://127.0.0.1:3000/login?error=Configuration').then(async (r) => { const text = await r.text(); if (!r.ok || !text.includes('서버의 Google 로그인 설정')) process.exit(1); }).catch((e) => { console.error(e); process.exit(1); })"
+            echo "::endgroup::"
             docker image prune -f
