@@ -1,6 +1,6 @@
 # 04 · Agent 개발 workflow
 
-> 이 문서는 **내가 Agent와 함께 한 feature를 끝낼 때 따르는 절차**다. Week 3 기준 최종본이며, 자세한 회고형 리포트는 [`09-Agent-Workflow-Report`](09-Agent-Workflow-Report)에 둔다.
+> 이 문서는 **내가 Agent와 함께 한 feature를 끝낼 때 따르는 절차**다. Week 3 기준 최종본이며, 자세한 회고형 리포트는 [`08-Agent-Workflow-Report`](08-Agent-Workflow-Report)에 둔다.
 
 ## 0. 전제
 
