@@ -4,8 +4,24 @@ import { auth, signIn } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 
 type LoginPageProps = {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 };
+
+function getAuthErrorMessage(error?: string) {
+  switch (error) {
+    case "AccessDenied":
+      return "SNU 구글 계정이 아니거나 이메일 인증이 완료되지 않아 로그인할 수 없습니다.";
+    case "Configuration":
+      return "서버의 Google 로그인 설정 또는 외부 연결 상태를 확인해야 합니다.";
+    case "OAuthCallback":
+    case "OAuthSignin":
+      return "Google 로그인 처리 중 문제가 발생했습니다. 잠시 후 다시 시도하세요.";
+    case undefined:
+      return null;
+    default:
+      return "로그인에 실패했습니다. 다시 시도해도 반복되면 서버 로그를 확인하세요.";
+  }
+}
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const session = await auth();
@@ -13,8 +29,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(session.user.approved ? "/" : "/pending");
   }
 
-  const { callbackUrl } = await searchParams;
+  const { callbackUrl, error } = await searchParams;
   const callback = callbackUrl ?? "/";
+  const errorMessage = getAuthErrorMessage(error);
 
   async function signInWithGoogle() {
     "use server";
@@ -31,6 +48,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           SNU 구글 계정(<span className="font-mono">@snu.ac.kr</span>)으로 로그인하세요.
         </p>
       </div>
+
+      {errorMessage ? (
+        <div className="w-full rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <form action={signInWithGoogle} className="w-full">
         <Button type="submit" className="w-full" size="lg">
