@@ -14,16 +14,16 @@
 - [05 · 프롬프트 패턴 모음](05-Prompt-Patterns)
 - [06 · 직접 검증/판단 체크포인트](06-Checkpoints)
 - [07 · 품질 개선과 테스트 전략](07-Quality-and-Testing)
-- [09 · Week 3 Agent 워크플로우 기술 리포트](09-Agent-Workflow-Report)
+- [08 · Week 3 Agent 워크플로우 기술 리포트](08-Agent-Workflow-Report)
 
 ### 진행 기록
 - [회고 · Week 1](Retrospective-Week1)
 - [회고 · Week 2](Retrospective-Week2)
-- [08 · 회고 Week 3](08-Retrospective-Week3)
+- [회고 · Week 3](Retrospective-Week3)
 
 ### 운영 / 후속 TODO
 - [N100 Prod 마이그레이션](N100-Prod-Migration)
-- [10 · 보류 결정과 후속 TODO](10-Backlog-and-Decisions)
+- [09 · 보류 결정과 후속 TODO](09-Backlog-and-Decisions)
 
 ## 3주 로드맵 요약
 
