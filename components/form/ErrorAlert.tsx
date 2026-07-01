@@ -17,7 +17,7 @@ export function ErrorAlert({ message, className }: Props) {
       role="alert"
       aria-live="polite"
       className={cn(
-        "rounded-md border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive",
+        "rounded-[18px] border border-destructive/40 bg-white px-5 py-4 font-text text-sm leading-[1.43] tracking-[-0.224px] text-destructive",
         className,
       )}
     >

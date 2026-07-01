@@ -80,8 +80,8 @@ export function PhotoSection({
   if (groupPhotoPath) {
     const src = `/api/uploads/${encodeUploadPath(groupPhotoPath)}`;
     return (
-      <section className="mb-6">
-        <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+      <section className="mb-10">
+        <div className="relative aspect-video w-full overflow-hidden rounded-[18px] border border-apple-hairline bg-apple-parchment">
           <Image
             src={src}
             alt={altText}
@@ -92,9 +92,9 @@ export function PhotoSection({
           />
         </div>
         {canEdit && (
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-3 flex flex-col gap-3">
             <ErrorAlert message={error} />
-            <div className="flex gap-3 text-xs">
+            <div className="flex gap-4 font-text text-sm leading-[1.29] tracking-[-0.224px]">
               <PhotoReplaceButton
                 sessionId={sessionId}
                 formAction={uploadAction}
@@ -105,7 +105,7 @@ export function PhotoSection({
                 <SubmitButton
                   variant="ghost"
                   size="sm"
-                  className="h-auto p-0 text-xs text-muted-foreground underline underline-offset-4 hover:text-destructive"
+                  className="h-auto rounded-none p-0 text-sm text-apple-primary underline underline-offset-4 hover:text-destructive"
                   idleLabel="삭제"
                   pendingLabel="삭제 중..."
                 />
@@ -119,13 +119,13 @@ export function PhotoSection({
 
   if (canEdit) {
     return (
-      <section className="mb-6 flex flex-col gap-3 rounded-md border border-dashed p-4">
-        <p className="text-xs text-muted-foreground">단체사진 (선택)</p>
+      <section className="mb-10 flex flex-col gap-4 rounded-[18px] border border-dashed border-apple-hairline bg-apple-canvas p-6">
+        <p className="font-text text-sm font-semibold leading-[1.29] tracking-[-0.224px] text-apple-ink">단체사진 (선택)</p>
         <ErrorAlert message={error} />
         <form
           action={uploadAction}
           onSubmit={handleUploadSubmit}
-          className="flex flex-col gap-2 sm:flex-row sm:items-center"
+          className="flex flex-col gap-3 sm:flex-row sm:items-center"
         >
           <input type="hidden" name="sessionId" value={sessionId} />
           <input
@@ -134,7 +134,7 @@ export function PhotoSection({
             accept={ALLOWED_ACCEPT_ATTR}
             required
             onChange={handleFileChange}
-            className="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-accent"
+            className="block w-full font-text text-sm leading-[1.43] tracking-[-0.224px] text-apple-muted-48 file:mr-3 file:rounded-full file:border file:border-apple-primary file:bg-apple-canvas file:px-4 file:py-2 file:text-sm file:font-normal file:text-apple-primary"
           />
           <SubmitButton
             size="sm"
@@ -142,7 +142,7 @@ export function PhotoSection({
             pendingLabel="올리는 중..."
           />
         </form>
-        <p className="text-xs text-muted-foreground">
+        <p className="font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
           jpg / png / webp / heic, 최대 {MAX_UPLOAD_MB}MB.
         </p>
       </section>
@@ -150,8 +150,8 @@ export function PhotoSection({
   }
 
   return (
-    <section className="mb-6 aspect-video w-full rounded-md border border-dashed bg-muted/40 flex items-center justify-center">
-      <span className="text-xs text-muted-foreground">사진 없음</span>
+    <section className="mb-10 flex aspect-video w-full items-center justify-center rounded-[18px] border border-dashed border-apple-hairline bg-apple-canvas">
+      <span className="font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">사진 없음</span>
     </section>
   );
 }

@@ -21,7 +21,7 @@ const PAD_LEFT = 64;
 export function PaceChart({ points }: Props) {
   if (points.length === 0) {
     return (
-      <div className="flex aspect-[5/2] w-full items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground">
+      <div className="flex aspect-[5/2] w-full items-center justify-center rounded-[18px] border border-dashed border-apple-hairline bg-apple-parchment font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
         페이스 데이터가 아직 없어요.
       </div>
     );
@@ -61,7 +61,7 @@ export function PaceChart({ points }: Props) {
       viewBox={`0 0 ${VB_WIDTH} ${VB_HEIGHT}`}
       role="img"
       aria-label="최근 페이스 추이"
-      className="w-full text-foreground"
+      className="w-full text-apple-primary"
     >
       <g transform={`translate(${PAD_LEFT} ${PAD_TOP})`}>
         {/* grid */}

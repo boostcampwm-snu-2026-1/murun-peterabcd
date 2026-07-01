@@ -67,7 +67,7 @@ export function NewSessionForm({ today }: { today: string }) {
         />
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
         단체사진은 세션 생성 후 상세 페이지에서 올릴 수 있습니다.
       </p>
 

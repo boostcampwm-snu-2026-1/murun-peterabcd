@@ -6,6 +6,14 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { requireApproved } from "@/lib/guard";
 import {
+  BackLink,
+  PageHeader,
+  PageShell,
+  SectionLabel,
+  SubNav,
+  UtilityCard,
+} from "@/components/layout/AppChrome";
+import {
   calcPaceSecPerKm,
   formatDistanceKm,
   formatDurationSec,
@@ -78,125 +86,122 @@ export default async function SessionDetailPage({ params }: PageProps) {
     0,
   );
 
-  return (
-    <main className="container mx-auto max-w-2xl p-6">
-      <nav className="mb-4 text-xs text-muted-foreground">
-        <Link href="/" className="underline-offset-4 hover:underline">
-          ← 홈
-        </Link>
-      </nav>
+  const metaLine = [
+    sessionRow.startTime ? `시작 ${sessionRow.startTime}` : null,
+    sessionRow.weather,
+    `호스트 ${sessionRow.host.name}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {formatDateHeader(sessionRow.date)} · {sessionRow.location}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {sessionRow.startTime && (
-              <span>시작 {sessionRow.startTime} · </span>
-            )}
-            {sessionRow.weather && <span>{sessionRow.weather} · </span>}
-            호스트:{" "}
-            <Link
-              href={
-                sessionRow.host.id === user.id
-                  ? "/me"
-                  : `/runners/${sessionRow.host.id}`
-              }
-              className="underline-offset-4 hover:underline"
-            >
-              {sessionRow.host.name}
-            </Link>
-          </p>
-        </div>
+  return (
+    <>
+      <SubNav title="세션">
+        <BackLink href="/sessions">아카이브</BackLink>
         {isHostOrAdmin && (
           <Button asChild variant="outline" size="sm">
             <Link href={`/sessions/${sessionRow.id}/edit`}>세션 수정</Link>
           </Button>
         )}
-      </header>
+      </SubNav>
 
-      <PhotoSection
-        sessionId={sessionRow.id}
-        groupPhotoPath={sessionRow.groupPhotoPath}
-        canEdit={isHostOrAdmin}
-        altText={`${formatDateHeader(sessionRow.date)} ${sessionRow.location} 단체사진`}
-      />
+      <PageShell width="content" surface="parchment">
+        <PageHeader
+          eyebrow={formatDateHeader(sessionRow.date)}
+          title={sessionRow.location}
+          description={metaLine}
+        />
 
-      <section className="mb-8">
-        <h2 className="mb-3 text-sm font-semibold uppercase text-muted-foreground">
-          참여자 ({sessionRow.participations.length})
-          {totalDistance > 0 && (
-            <span className="ml-2 normal-case text-foreground/80">
-              · 총 {totalDistance.toFixed(1)} km
-            </span>
-          )}
-        </h2>
+        <PhotoSection
+          sessionId={sessionRow.id}
+          groupPhotoPath={sessionRow.groupPhotoPath}
+          canEdit={isHostOrAdmin}
+          altText={`${formatDateHeader(sessionRow.date)} ${sessionRow.location} 단체사진`}
+        />
 
-        {sessionRow.participations.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            아직 참여자가 없습니다. 아래에서 본인 기록을 추가하세요.
-          </p>
-        ) : (
-          <ul className="flex flex-col divide-y rounded-md border">
-            {sessionRow.participations.map((p) => {
-              const pace = calcPaceSecPerKm(p.distanceKm, p.durationSec);
-              const isMine = p.userId === user.id;
-              return (
-                <li
-                  key={p.id}
-                  className="flex flex-col gap-1 p-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-baseline gap-2">
-                    <Link
-                      href={isMine ? "/me" : `/runners/${p.userId}`}
-                      className="font-medium underline-offset-4 hover:underline"
-                    >
-                      {p.user.name}
-                    </Link>
-                    {isMine && (
-                      <span className="text-xs text-muted-foreground">(나)</span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                    <span>{formatDistanceKm(p.distanceKm)}</span>
-                    <span>{formatDurationSec(p.durationSec)}</span>
-                    <span className="font-mono">{formatPace(pace)}</span>
-                  </div>
-                  {p.note && (
-                    <p className="text-xs text-muted-foreground sm:hidden">
-                      {p.note}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="flex flex-col gap-8">
+            <UtilityCard>
+              <SectionLabel>
+                참여자 ({sessionRow.participations.length})
+                {totalDistance > 0 && (
+                  <span className="ml-2 normal-case text-apple-muted-80">
+                    · 총 {totalDistance.toFixed(1)} km
+                  </span>
+                )}
+              </SectionLabel>
 
-      <MyParticipationForm
-        sessionId={sessionRow.id}
-        existing={
-          myRow
-            ? {
-                distanceKm: myRow.distanceKm,
-                durationSec: myRow.durationSec,
-                note: myRow.note,
-              }
-            : null
-        }
-      />
+              {sessionRow.participations.length === 0 ? (
+                <p className="font-text text-sm leading-[1.43] tracking-[-0.224px] text-apple-muted-48">
+                  아직 참여자가 없습니다. 아래에서 본인 기록을 추가하세요.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {sessionRow.participations.map((p) => {
+                    const pace = calcPaceSecPerKm(p.distanceKm, p.durationSec);
+                    const isMine = p.userId === user.id;
+                    return (
+                      <li
+                        key={p.id}
+                        className="rounded-[18px] border border-apple-hairline bg-apple-parchment p-4"
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-baseline gap-2">
+                            <Link
+                              href={isMine ? "/me" : `/runners/${p.userId}`}
+                              className="font-text text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-apple-primary underline-offset-4 hover:underline"
+                            >
+                              {p.user.name}
+                            </Link>
+                            {isMine && (
+                              <span className="font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
+                                (나)
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 font-text text-sm leading-[1.43] tracking-[-0.224px] text-apple-muted-48">
+                            <span>{formatDistanceKm(p.distanceKm)}</span>
+                            <span>{formatDurationSec(p.durationSec)}</span>
+                            <span className="font-mono">{formatPace(pace)}</span>
+                          </div>
+                        </div>
+                        {p.note && (
+                          <p className="mt-2 font-text text-sm leading-[1.43] tracking-[-0.224px] text-apple-muted-48">
+                            {p.note}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </UtilityCard>
 
-      {sessionRow.notes && (
-        <section className="mt-6">
-          <h2 className="mb-2 text-sm font-semibold uppercase text-muted-foreground">
-            코스 메모
-          </h2>
-          <p className="whitespace-pre-wrap text-sm">{sessionRow.notes}</p>
-        </section>
-      )}
-    </main>
+            {sessionRow.notes && (
+              <UtilityCard>
+                <SectionLabel>코스 메모</SectionLabel>
+                <p className="whitespace-pre-wrap font-text text-[17px] leading-[1.47] tracking-[-0.374px] text-apple-ink">
+                  {sessionRow.notes}
+                </p>
+              </UtilityCard>
+            )}
+          </div>
+
+          <MyParticipationForm
+            sessionId={sessionRow.id}
+            existing={
+              myRow
+                ? {
+                    distanceKm: myRow.distanceKm,
+                    durationSec: myRow.durationSec,
+                    note: myRow.note,
+                  }
+                : null
+            }
+          />
+        </div>
+      </PageShell>
+    </>
   );
 }
 

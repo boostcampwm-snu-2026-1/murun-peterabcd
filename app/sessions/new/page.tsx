@@ -1,6 +1,11 @@
-import Link from "next/link";
-
 import { requireApproved } from "@/lib/guard";
+import {
+  BackLink,
+  PageHeader,
+  PageShell,
+  SubNav,
+  UtilityCard,
+} from "@/components/layout/AppChrome";
 
 import { NewSessionForm } from "./_components/NewSessionForm";
 
@@ -12,18 +17,20 @@ export default async function NewSessionPage() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <main className="container mx-auto max-w-md p-6">
-      <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">세션 만들기</h1>
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-        >
-          취소
-        </Link>
-      </header>
-
-      <NewSessionForm today={today} />
-    </main>
+    <>
+      <SubNav title="새 세션">
+        <BackLink href="/">취소</BackLink>
+      </SubNav>
+      <PageShell width="narrow" surface="parchment">
+        <PageHeader
+          eyebrow="Create"
+          title="세션 만들기"
+          description="러닝 일정을 만들고 참여 기록을 쌓을 준비를 해요."
+        />
+        <UtilityCard>
+          <NewSessionForm today={today} />
+        </UtilityCard>
+      </PageShell>
+    </>
   );
 }

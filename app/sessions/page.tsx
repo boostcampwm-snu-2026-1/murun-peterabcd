@@ -8,6 +8,12 @@ import {
   parseSessionArchiveParams,
   type SessionArchiveSearchParams,
 } from "@/lib/session-filters";
+import {
+  PageHeader,
+  PageShell,
+  SubNav,
+  UtilityCard,
+} from "@/components/layout/AppChrome";
 
 import { EmptyState } from "./_components/EmptyState";
 import { FilterBar } from "./_components/FilterBar";
@@ -20,7 +26,6 @@ type SearchParams = SessionArchiveSearchParams;
 type PageProps = {
   searchParams: Promise<SearchParams>;
 };
-
 
 export default async function SessionsArchivePage({ searchParams }: PageProps) {
   await requireApproved();
@@ -39,72 +44,72 @@ export default async function SessionsArchivePage({ searchParams }: PageProps) {
       : null;
 
   return (
-    <main className="container mx-auto max-w-2xl p-6">
-      <nav className="mb-4 text-xs text-muted-foreground">
-        <Link href="/" className="underline-offset-4 hover:underline">
-          ← 홈
-        </Link>
-      </nav>
+    <>
+      <SubNav title="아카이브">
+        <Button asChild size="sm">
+          <Link href="/sessions/new">새 세션</Link>
+        </Button>
+      </SubNav>
 
-      <header className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">아카이브</h1>
-        <Link href="/sessions/new">
-          <Button size="sm">새 세션</Button>
-        </Link>
-      </header>
+      <PageShell width="content" surface="parchment">
+        <PageHeader
+          eyebrow="Sessions"
+          title="러닝 아카이브"
+          description="날짜, 장소, 참여 멤버로 애니뮤 러닝 세션을 찾아보세요."
+        />
 
-      <FilterBar
-        q={filters.q ?? ""}
-        memberIds={filters.memberIds ?? []}
-        month={filters.month ?? ""}
-        pmin={filters.pmin != null ? String(filters.pmin) : ""}
-        pmax={filters.pmax != null ? String(filters.pmax) : ""}
-        members={members}
-        hasActiveFilters={hasActiveFilters}
-      />
+        <FilterBar
+          q={filters.q ?? ""}
+          memberIds={filters.memberIds ?? []}
+          month={filters.month ?? ""}
+          pmin={filters.pmin != null ? String(filters.pmin) : ""}
+          pmax={filters.pmax != null ? String(filters.pmax) : ""}
+          members={members}
+          hasActiveFilters={hasActiveFilters}
+        />
 
-      {page.items.length === 0 ? (
-        hasActiveFilters ? (
-          <EmptyFilterResult />
+        {page.items.length === 0 ? (
+          hasActiveFilters ? (
+            <EmptyFilterResult />
+          ) : (
+            <EmptyState />
+          )
         ) : (
-          <EmptyState />
-        )
-      ) : (
-        <>
-          <ul className="flex flex-col gap-4">
-            {page.items.map((s) => (
-              <li key={s.id}>
-                <SessionCard {...s} />
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="grid gap-6 md:grid-cols-2">
+              {page.items.map((s) => (
+                <li key={s.id}>
+                  <SessionCard {...s} />
+                </li>
+              ))}
+            </ul>
 
-          {nextHref && (
-            <div className="mt-6 flex justify-center">
-              <Link href={nextHref}>
-                <Button variant="outline">더 보기</Button>
-              </Link>
-            </div>
-          )}
-        </>
-      )}
-    </main>
+            {nextHref && (
+              <div className="mt-10 flex justify-center">
+                <Button asChild variant="outline">
+                  <Link href={nextHref}>더 보기</Link>
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </PageShell>
+    </>
   );
 }
 
 function EmptyFilterResult() {
   return (
-    <section className="flex flex-col items-center gap-3 rounded-md border border-dashed p-10 text-center">
-      <p className="text-sm text-muted-foreground">
+    <UtilityCard className="flex flex-col items-center gap-4 border-dashed text-center">
+      <p className="font-display text-[24px] font-light leading-[1.5] tracking-normal text-apple-muted-80">
         조건에 맞는 세션이 없어요.
       </p>
       <Link
         href="/sessions"
-        className="text-xs underline underline-offset-4"
+        className="font-text text-sm leading-[1.29] tracking-[-0.224px] text-apple-primary underline-offset-4 hover:underline"
       >
         필터 초기화
       </Link>
-    </section>
+    </UtilityCard>
   );
 }
-

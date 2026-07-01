@@ -36,13 +36,11 @@ export function FilterBar({
   return (
     <form
       method="get"
-      className="mb-6 flex flex-col gap-3 rounded-md border bg-muted/30 p-4"
+      className="mb-10 rounded-[18px] border border-apple-hairline bg-apple-canvas p-6"
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="f-q" className="text-xs">
-            장소
-          </Label>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="f-q">장소</Label>
           <Input
             id="f-q"
             name="q"
@@ -53,8 +51,18 @@ export function FilterBar({
           />
         </div>
 
-        <fieldset className="flex flex-col gap-2 sm:col-span-2">
-          <legend className="text-xs font-medium text-[#1d1d1f]">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="f-month">월</Label>
+          <Input
+            id="f-month"
+            name="month"
+            type="month"
+            defaultValue={month}
+          />
+        </div>
+
+        <fieldset className="flex flex-col gap-3 sm:col-span-2">
+          <legend className="font-text text-sm font-semibold leading-[1.29] tracking-[-0.224px] text-apple-ink">
             참여 멤버
           </legend>
           {members.length > 0 ? (
@@ -73,7 +81,7 @@ export function FilterBar({
                     />
                     <Label
                       htmlFor={inputId}
-                      className="inline-flex min-h-9 cursor-pointer items-center rounded-full border border-[#e0e0e0] bg-white px-4 py-2 text-sm text-[#1d1d1f] transition-colors peer-checked:border-[#0066cc] peer-checked:text-[#0066cc] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#0071e3]"
+                      className="inline-flex min-h-11 cursor-pointer items-center rounded-full border border-apple-hairline bg-apple-canvas px-4 py-2 font-text text-sm font-normal leading-[1.43] tracking-[-0.224px] text-apple-ink transition-transform active:scale-95 peer-checked:border-apple-focus peer-checked:text-apple-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-apple-focus"
                     >
                       {m.name}
                     </Label>
@@ -82,27 +90,17 @@ export function FilterBar({
               })}
             </div>
           ) : (
-            <p className="text-xs text-[#7a7a7a]">승인된 멤버가 없어요.</p>
+            <p className="font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
+              승인된 멤버가 없어요.
+            </p>
           )}
-          <p className="text-xs text-[#7a7a7a]">
+          <p className="font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
             여러 명을 선택하면 모두 참여한 세션만 보여줘요.
           </p>
         </fieldset>
 
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="f-month" className="text-xs">
-            월
-          </Label>
-          <Input
-            id="f-month"
-            name="month"
-            type="month"
-            defaultValue={month}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <Label className="text-xs">참여 인원</Label>
+        <div className="flex flex-col gap-2">
+          <Label className="text-sm">참여 인원</Label>
           <div className="flex items-center gap-2">
             <Input
               name="pmin"
@@ -114,7 +112,7 @@ export function FilterBar({
               className="w-full"
               aria-label="참여 인원 최소"
             />
-            <span className="text-muted-foreground">~</span>
+            <span className="text-apple-muted-48">~</span>
             <Input
               name="pmax"
               type="number"
@@ -129,11 +127,11 @@ export function FilterBar({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="mt-6 flex items-center justify-end gap-3">
         {hasActiveFilters && (
           <Link
             href="/sessions"
-            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            className="font-text text-sm leading-[1.29] tracking-[-0.224px] text-apple-primary underline-offset-4 hover:underline"
           >
             필터 초기화
           </Link>

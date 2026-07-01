@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { db } from "@/lib/db";
 import { requireHostOrAdmin } from "@/lib/guard";
 import { dateInputValue } from "@/lib/session-form";
+import {
+  BackLink,
+  PageHeader,
+  PageShell,
+  SubNav,
+} from "@/components/layout/AppChrome";
 
 import { EditSessionForm } from "./_components/EditSessionForm";
 
@@ -47,34 +52,28 @@ export default async function EditSessionPage({ params }: PageProps) {
   if (!session) notFound();
 
   return (
-    <main className="container mx-auto max-w-2xl p-6">
-      <nav className="mb-4 text-xs text-muted-foreground">
-        <Link
-          href={`/sessions/${session.id}`}
-          className="underline-offset-4 hover:underline"
-        >
-          ← 세션으로 돌아가기
-        </Link>
-      </nav>
-
-      <header className="mb-6 flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">세션 수정</h1>
-        <p className="text-sm text-muted-foreground">
-          날짜·장소·시간·날씨·메모를 수정하거나 세션을 삭제합니다.
-        </p>
-      </header>
-
-      <EditSessionForm
-        session={{
-          id: session.id,
-          date: dateInputValue(session.date),
-          startTime: session.startTime ?? "",
-          location: session.location,
-          weather: session.weather ?? "",
-          notes: session.notes ?? "",
-        }}
-      />
-    </main>
+    <>
+      <SubNav title="세션 수정">
+        <BackLink href={`/sessions/${session.id}`}>세션으로 돌아가기</BackLink>
+      </SubNav>
+      <PageShell width="content" surface="parchment">
+        <PageHeader
+          eyebrow="Edit"
+          title="세션 수정"
+          description="날짜·장소·시간·날씨·메모를 정리하거나 세션을 삭제합니다."
+        />
+        <EditSessionForm
+          session={{
+            id: session.id,
+            date: dateInputValue(session.date),
+            startTime: session.startTime ?? "",
+            location: session.location,
+            weather: session.weather ?? "",
+            notes: session.notes ?? "",
+          }}
+        />
+      </PageShell>
+    </>
   );
 }
 

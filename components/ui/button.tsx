@@ -5,26 +5,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-text font-normal tracking-[-0.374px] transition-transform active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-apple-focus disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default:
-          "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        default: "bg-apple-primary text-white",
+        destructive: "bg-destructive text-destructive-foreground",
+        outline: "border border-apple-primary bg-apple-canvas text-apple-primary",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border-[3px] border-apple-divider bg-apple-pearl text-apple-muted-80",
+        ghost: "bg-transparent text-apple-primary",
+        link: "h-auto rounded-none p-0 text-apple-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-11 px-4 py-2",
-        sm: "h-10 rounded-md px-3",
-        lg: "h-12 rounded-md px-8",
-        icon: "h-11 w-11",
+        default: "h-11 px-[22px] py-[11px] text-[17px] leading-none",
+        sm: "h-9 px-[15px] py-2 text-sm leading-[1.29] tracking-[-0.224px]",
+        lg: "h-12 px-7 py-3.5 text-[18px] font-light leading-none tracking-normal",
+        icon: "h-11 w-11 rounded-full p-0",
       },
     },
     defaultVariants: {
