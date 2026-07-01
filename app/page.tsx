@@ -3,6 +3,11 @@ import { redirect } from "next/navigation";
 
 import { auth, signOut } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import {
+  PageHeader,
+  PageShell,
+  UtilityCard,
+} from "@/components/layout/AppChrome";
 
 export const dynamic = "force-dynamic";
 
@@ -17,38 +22,29 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="container mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 p-6">
-      <header className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">뮤런</h1>
-        <p className="text-sm text-muted-foreground">
-          안녕하세요, {session.user.name}.
-        </p>
-      </header>
+    <PageShell width="narrow" surface="parchment">
+      <PageHeader
+        align="center"
+        eyebrow="Animu Running Archive"
+        title="뮤런"
+        description={<>안녕하세요, {session.user.name}. 오늘의 러닝 기록을 남겨요.</>}
+      />
 
-      <div className="flex w-full flex-col gap-3">
-        <Link href="/sessions/new" className="w-full">
-          <Button className="w-full" size="lg">
-            새 세션 만들기
-          </Button>
-        </Link>
-        <Link href="/sessions" className="w-full">
-          <Button className="w-full" variant="outline" size="lg">
-            전체 아카이브
-          </Button>
-        </Link>
-        <Link href="/me" className="w-full">
-          <Button className="w-full" variant="outline" size="lg">
-            내 기록
-          </Button>
-        </Link>
-      </div>
+      <UtilityCard className="flex flex-col gap-3">
+        <Button asChild size="lg" className="w-full">
+          <Link href="/sessions/new">새 세션 만들기</Link>
+        </Button>
+        <Button asChild variant="outline" size="lg" className="w-full">
+          <Link href="/sessions">전체 아카이브</Link>
+        </Button>
+        <Button asChild variant="secondary" size="lg" className="w-full">
+          <Link href="/me">내 기록</Link>
+        </Button>
+      </UtilityCard>
 
-      <div className="flex items-center gap-4">
+      <div className="mt-8 flex items-center justify-center gap-5 font-text text-sm leading-[1.29] tracking-[-0.224px]">
         {session.user.role === "ADMIN" && (
-          <Link
-            href="/admin/members"
-            className="text-sm font-medium underline underline-offset-4"
-          >
+          <Link href="/admin/members" className="text-apple-primary underline-offset-4 hover:underline">
             회원 관리
           </Link>
         )}
@@ -58,6 +54,6 @@ export default async function HomePage() {
           </Button>
         </form>
       </div>
-    </main>
+    </PageShell>
   );
 }

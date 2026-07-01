@@ -37,7 +37,7 @@ export function PhotoReplaceButton({
   return (
     <form ref={formRef} action={formAction} className="inline-flex">
       <input type="hidden" name="sessionId" value={sessionId} />
-      <label className="cursor-pointer text-muted-foreground underline underline-offset-4 hover:text-foreground">
+      <label className="cursor-pointer font-text text-sm leading-[1.29] tracking-[-0.224px] text-apple-primary underline underline-offset-4 hover:text-apple-ink">
         교체
         <input
           type="file"

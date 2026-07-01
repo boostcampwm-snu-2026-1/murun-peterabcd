@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { ErrorAlert } from "@/components/form/ErrorAlert";
 import { SubmitButton } from "@/components/form/SubmitButton";
+import { UtilityCard } from "@/components/layout/AppChrome";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,15 +40,19 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
     upsertState && !upsertState.ok ? upsertState.error : null;
 
   return (
-    <section className="flex flex-col gap-4 rounded-md border p-4">
-      <header className="flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold">내 기록</h3>
+    <UtilityCard className="flex flex-col gap-5 self-start lg:sticky lg:top-32">
+      <header className="flex items-baseline justify-between gap-3">
+        <h3 className="font-display text-[21px] font-semibold leading-[1.19] tracking-[0.231px]">
+          내 기록
+        </h3>
         {has && (
-          <span className="text-xs text-muted-foreground">현재 입력됨</span>
+          <span className="rounded-full bg-apple-parchment px-3 py-1 font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
+            현재 입력됨
+          </span>
         )}
       </header>
 
-      <form action={upsertAction} className="flex flex-col gap-4">
+      <form action={upsertAction} className="flex flex-col gap-5">
         <input type="hidden" name="sessionId" value={sessionId} />
 
         <ErrorAlert message={upsertError} />
@@ -69,7 +74,7 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
 
         <div className="flex flex-col gap-2">
           <Label>기록</Label>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
             <Input
               name="durationMin"
               type="number"
@@ -78,10 +83,9 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
               max="1440"
               placeholder="분"
               defaultValue={minutes}
-              className="w-24"
               aria-label="기록 (분)"
             />
-            <span className="text-muted-foreground">분</span>
+            <span className="text-apple-muted-48">분</span>
             <Input
               name="durationSec"
               type="number"
@@ -90,10 +94,9 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
               max="59"
               placeholder="초"
               defaultValue={seconds}
-              className="w-24"
               aria-label="기록 (초)"
             />
-            <span className="text-muted-foreground">초</span>
+            <span className="text-apple-muted-48">초</span>
           </div>
         </div>
 
@@ -127,6 +130,6 @@ export function MyParticipationForm({ sessionId, existing }: Props) {
           />
         </form>
       )}
-    </section>
+    </UtilityCard>
   );
 }

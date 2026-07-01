@@ -2,6 +2,11 @@ import { redirect } from "next/navigation";
 
 import { auth, signIn } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import {
+  PageHeader,
+  PageShell,
+  UtilityCard,
+} from "@/components/layout/AppChrome";
 
 type LoginPageProps = {
   searchParams: Promise<{ callbackUrl?: string; error?: string }>;
@@ -39,34 +44,39 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <main className="container mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-8 p-6">
-      <div className="flex flex-col items-center gap-3 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">뮤런</h1>
-        <p className="text-sm text-muted-foreground">
-          애니뮤 러닝 소모임 내부 아카이브.
-          <br />
-          SNU 구글 계정(<span className="font-mono">@snu.ac.kr</span>)으로 로그인하세요.
-        </p>
-      </div>
+    <PageShell width="narrow" surface="parchment">
+      <PageHeader
+        align="center"
+        eyebrow="SNU Google only"
+        title="뮤런"
+        description={
+          <>
+            애니뮤 러닝 소모임 내부 아카이브.
+            <br />SNU 구글 계정으로 로그인하세요.
+          </>
+        }
+      />
 
-      {errorMessage ? (
-        <div
-          role="alert"
-          className="w-full rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-        >
-          {errorMessage}
-        </div>
-      ) : null}
+      <UtilityCard className="flex flex-col gap-5">
+        {errorMessage ? (
+          <div
+            role="alert"
+            className="rounded-[18px] border border-destructive/40 bg-white px-5 py-4 font-text text-sm leading-[1.43] tracking-[-0.224px] text-destructive"
+          >
+            {errorMessage}
+          </div>
+        ) : null}
 
-      <form action={signInWithGoogle} className="w-full">
-        <Button type="submit" className="w-full" size="lg">
-          SNU 구글로 계속하기
-        </Button>
-      </form>
+        <form action={signInWithGoogle}>
+          <Button type="submit" className="w-full" size="lg">
+            SNU 구글로 계속하기
+          </Button>
+        </form>
+      </UtilityCard>
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="mt-6 text-center font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
         첫 로그인 후 관리자 승인이 필요합니다.
       </p>
-    </main>
+    </PageShell>
   );
 }
