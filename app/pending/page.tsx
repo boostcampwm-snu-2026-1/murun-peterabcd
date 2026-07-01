@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/guard";
 import { signOut } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
-  PageHeader,
+  HeroBand,
   PageShell,
   UtilityCard,
 } from "@/components/layout/AppChrome";
@@ -19,9 +19,8 @@ export default async function PendingPage() {
   }
 
   return (
-    <PageShell width="narrow" surface="parchment">
-      <PageHeader
-        align="center"
+    <>
+      <HeroBand
         eyebrow="Approval required"
         title="승인 대기 중"
         description={
@@ -31,6 +30,8 @@ export default async function PendingPage() {
           </>
         }
       />
+
+      <PageShell width="narrow" surface="parchment">
 
       <UtilityCard className="flex flex-col gap-5 text-center">
         <p className="font-text text-sm leading-[1.43] tracking-[-0.224px] text-apple-muted-48">
@@ -42,6 +43,7 @@ export default async function PendingPage() {
           </Button>
         </form>
       </UtilityCard>
-    </PageShell>
+      </PageShell>
+    </>
   );
 }

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth, signIn } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import {
-  PageHeader,
+  HeroBand,
   PageShell,
   UtilityCard,
 } from "@/components/layout/AppChrome";
@@ -44,9 +44,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <PageShell width="narrow" surface="parchment">
-      <PageHeader
-        align="center"
+    <>
+      <HeroBand
         eyebrow="SNU Google only"
         title="뮤런"
         description={
@@ -56,6 +55,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </>
         }
       />
+
+      <PageShell width="narrow" surface="parchment">
 
       <UtilityCard className="flex flex-col gap-5">
         {errorMessage ? (
@@ -77,6 +78,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <p className="mt-6 text-center font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
         첫 로그인 후 관리자 승인이 필요합니다.
       </p>
-    </PageShell>
+      </PageShell>
+    </>
   );
 }
