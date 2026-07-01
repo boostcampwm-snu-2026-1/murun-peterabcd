@@ -11,7 +11,7 @@ type Member = {
 
 type Props = {
   q: string;
-  memberId: string;
+  memberIds: string[];
   month: string;
   pmin: string;
   pmax: string;
@@ -20,13 +20,13 @@ type Props = {
 };
 
 /**
- * /sessions 상단 필터. GET form 으로 제출 → URL ?q=&member=&month=&pmin=&pmax= 갱신.
+ * /sessions 상단 필터. GET form 으로 제출 → URL ?q=&member=&member=&month=&pmin=&pmax= 갱신.
  * Server-rendered, 별도 client component 없음. 필터 변경 시 cursor 는 자동으로 리셋
  * (form 이 cursor 를 hidden 으로 안 들고 가니까).
  */
 export function FilterBar({
   q,
-  memberId,
+  memberIds,
   month,
   pmin,
   pmax,
@@ -53,24 +53,41 @@ export function FilterBar({
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="f-member" className="text-xs">
+        <fieldset className="flex flex-col gap-2 sm:col-span-2">
+          <legend className="text-xs font-medium text-[#1d1d1f]">
             참여 멤버
-          </Label>
-          <select
-            id="f-member"
-            name="member"
-            defaultValue={memberId}
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">전체</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
-        </div>
+          </legend>
+          {members.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {members.map((m) => {
+                const inputId = `f-member-${m.id}`;
+                return (
+                  <div key={m.id} className="relative">
+                    <input
+                      id={inputId}
+                      name="member"
+                      type="checkbox"
+                      value={m.id}
+                      defaultChecked={memberIds.includes(m.id)}
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor={inputId}
+                      className="inline-flex min-h-9 cursor-pointer items-center rounded-full border border-[#e0e0e0] bg-white px-4 py-2 text-sm text-[#1d1d1f] transition-colors peer-checked:border-[#0066cc] peer-checked:text-[#0066cc] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[#0071e3]"
+                    >
+                      {m.name}
+                    </Label>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-[#7a7a7a]">승인된 멤버가 없어요.</p>
+          )}
+          <p className="text-xs text-[#7a7a7a]">
+            여러 명을 선택하면 모두 참여한 세션만 보여줘요.
+          </p>
+        </fieldset>
 
         <div className="flex flex-col gap-1">
           <Label htmlFor="f-month" className="text-xs">

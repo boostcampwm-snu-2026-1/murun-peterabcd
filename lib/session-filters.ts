@@ -1,17 +1,19 @@
+type SearchParamValue = string | string[] | undefined;
+
 export type SessionArchiveSearchParams = {
-  cursor?: string;
-  q?: string;
-  member?: string;
-  month?: string;
-  pmin?: string;
-  pmax?: string;
+  cursor?: SearchParamValue;
+  q?: SearchParamValue;
+  member?: SearchParamValue;
+  month?: SearchParamValue;
+  pmin?: SearchParamValue;
+  pmax?: SearchParamValue;
 };
 
 export type ParsedSessionArchiveParams = {
   cursorId?: number;
   filters: {
     q?: string;
-    memberId?: string;
+    memberIds?: string[];
     month?: string;
     pmin?: number;
     pmax?: number;
@@ -22,20 +24,21 @@ export type ParsedSessionArchiveParams = {
 export function parseSessionArchiveParams(
   params: SessionArchiveSearchParams,
 ): ParsedSessionArchiveParams {
+  const memberIds = parseStringListParam(params.member);
   const filters = {
-    q: params.q?.trim() || undefined,
-    memberId: params.member?.trim() || undefined,
-    month: parseMonthParam(params.month) ?? undefined,
-    pmin: parseNonNegativeInt(params.pmin),
-    pmax: parseNonNegativeInt(params.pmax),
+    q: firstSearchParam(params.q)?.trim() || undefined,
+    memberIds: memberIds.length > 0 ? memberIds : undefined,
+    month: parseMonthParam(firstSearchParam(params.month)) ?? undefined,
+    pmin: parseNonNegativeInt(firstSearchParam(params.pmin)),
+    pmax: parseNonNegativeInt(firstSearchParam(params.pmax)),
   };
 
   return {
-    cursorId: parsePositiveInt(params.cursor),
+    cursorId: parsePositiveInt(firstSearchParam(params.cursor)),
     filters,
     hasActiveFilters: Boolean(
       filters.q ||
-        filters.memberId ||
+        filters.memberIds?.length ||
         filters.month ||
         filters.pmin != null ||
         filters.pmax != null,
@@ -44,12 +47,15 @@ export function parseSessionArchiveParams(
 }
 
 export function buildSessionArchiveHref(
-  params: Record<string, string | undefined>,
+  params: Record<string, SearchParamValue>,
 ): string {
   const q = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    const trimmed = value?.trim();
-    if (trimmed) q.set(key, trimmed);
+    const values = Array.isArray(value) ? value : [value];
+    for (const item of values) {
+      const trimmed = item?.trim();
+      if (trimmed) q.append(key, trimmed);
+    }
   }
   const query = q.toString();
   return query ? `/sessions?${query}` : "/sessions";
@@ -72,6 +78,27 @@ export function parseMonthRange(month: string | undefined): {
   };
 }
 
+function firstSearchParam(raw: SearchParamValue): string | undefined {
+  if (Array.isArray(raw)) {
+    return raw.find((value) => value.trim());
+  }
+  return raw;
+}
+
+function parseStringListParam(raw: SearchParamValue): string[] {
+  const values = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const seen = new Set<string>();
+  const parsed: string[] = [];
+
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    parsed.push(trimmed);
+  }
+
+  return parsed;
+}
 function parseMonthParam(raw: string | undefined): string | null {
   const value = raw?.trim();
   if (!value) return null;

@@ -32,14 +32,14 @@ export type SessionListPage = {
 /**
  * /sessions 아카이브 필터.
  *   - q          : 장소 substring (case-insensitive ASCII / 한글 그대로)
- *   - memberId   : 해당 user 가 *참여한* 세션만
+ *   - memberIds  : 선택한 모든 user 가 *참여한* 세션만
  *   - month      : "YYYY-MM" — 해당 달의 세션만 (UTC 기준; 동아리는 KST 라 거의 일치)
  *   - pmin/pmax  : 참여 인원 수 범위. Prisma 가 relation _count where 를 직접
  *                  지원 안 해서 raw 로 ID 만 따로 추출한 뒤 IN 으로 필터.
  */
 export type SessionFilters = {
   q?: string;
-  memberId?: string;
+  memberIds?: string[];
   month?: string;
   pmin?: number;
   pmax?: number;
@@ -75,10 +75,12 @@ function buildWhere(
   if (filters?.q && filters.q.trim()) {
     where.location = { contains: filters.q.trim() };
   }
-  if (filters?.memberId) {
-    where.participations = {
-      some: { userId: filters.memberId },
-    };
+  if (filters?.memberIds?.length) {
+    where.AND = filters.memberIds.map((userId) => ({
+      participations: {
+        some: { userId },
+      },
+    }));
   }
   const range = parseMonthRange(filters?.month);
   if (range) {

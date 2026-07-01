@@ -11,7 +11,7 @@ describe("session archive filter parsing", () => {
     const parsed = parseSessionArchiveParams({
       cursor: "12",
       q: " 서울숲 ",
-      member: "user-1",
+      member: ["user-1", " user-2 ", "user-1", ""],
       month: "2026-06",
       pmin: "2",
       pmax: "10",
@@ -21,7 +21,7 @@ describe("session archive filter parsing", () => {
       cursorId: 12,
       filters: {
         q: "서울숲",
-        memberId: "user-1",
+        memberIds: ["user-1", "user-2"],
         month: "2026-06",
         pmin: 2,
         pmax: 10,
@@ -42,7 +42,7 @@ describe("session archive filter parsing", () => {
       cursorId: undefined,
       filters: {
         q: undefined,
-        memberId: undefined,
+        memberIds: undefined,
         month: undefined,
         pmin: undefined,
         pmax: undefined,
@@ -64,10 +64,12 @@ describe("session archive filter parsing", () => {
     expect(
       buildSessionArchiveHref({
         q: "서울숲",
-        member: "",
+        member: ["u1", "", "u2"],
         month: "2026-06",
         cursor: "25",
       }),
-    ).toBe("/sessions?q=%EC%84%9C%EC%9A%B8%EC%88%B2&month=2026-06&cursor=25");
+    ).toBe(
+      "/sessions?q=%EC%84%9C%EC%9A%B8%EC%88%B2&member=u1&member=u2&month=2026-06&cursor=25",
+    );
   });
 });
