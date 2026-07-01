@@ -98,11 +98,6 @@ export default async function SessionDetailPage({ params }: PageProps) {
     <>
       <SubNav title="세션">
         <BackLink href="/sessions">아카이브</BackLink>
-        {isHostOrAdmin && (
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/sessions/${sessionRow.id}/edit`}>세션 수정</Link>
-          </Button>
-        )}
       </SubNav>
 
       <HeroBand
