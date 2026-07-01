@@ -21,6 +21,7 @@ type PageProps = {
   searchParams: Promise<SearchParams>;
 };
 
+
 export default async function SessionsArchivePage({ searchParams }: PageProps) {
   await requireApproved();
 
@@ -53,11 +54,11 @@ export default async function SessionsArchivePage({ searchParams }: PageProps) {
       </header>
 
       <FilterBar
-        q={sp.q ?? ""}
-        memberId={sp.member ?? ""}
-        month={sp.month ?? ""}
-        pmin={sp.pmin ?? ""}
-        pmax={sp.pmax ?? ""}
+        q={filters.q ?? ""}
+        memberIds={filters.memberIds ?? []}
+        month={filters.month ?? ""}
+        pmin={filters.pmin != null ? String(filters.pmin) : ""}
+        pmax={filters.pmax != null ? String(filters.pmax) : ""}
         members={members}
         hasActiveFilters={hasActiveFilters}
       />

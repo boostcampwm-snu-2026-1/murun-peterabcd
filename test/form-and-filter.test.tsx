@@ -43,7 +43,7 @@ describe("FilterBar", () => {
     render(
       <FilterBar
         q="서울숲"
-        memberId="u2"
+        memberIds={["u1", "u2"]}
         month="2026-06"
         pmin="2"
         pmax="8"
@@ -56,9 +56,8 @@ describe("FilterBar", () => {
     );
 
     expect(screen.getByLabelText("장소")).toHaveValue("서울숲");
-    expect(screen.getByRole("combobox", { name: "참여 멤버" })).toHaveValue(
-      "u2",
-    );
+    expect(screen.getByRole("checkbox", { name: "민지" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "현민" })).toBeChecked();
     expect(screen.getByLabelText("월")).toHaveValue("2026-06");
     expect(screen.getByLabelText("참여 인원 최소")).toHaveValue(2);
     expect(screen.getByLabelText("참여 인원 최대")).toHaveValue(8);
@@ -72,7 +71,7 @@ describe("FilterBar", () => {
     render(
       <FilterBar
         q=""
-        memberId=""
+        memberIds={[]}
         month=""
         pmin=""
         pmax=""
