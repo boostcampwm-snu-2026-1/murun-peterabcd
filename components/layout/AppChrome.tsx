@@ -138,7 +138,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "mb-10 flex flex-col gap-5",
+        "mb-10 flex flex-col gap-4",
         align === "center" && "items-center text-center",
         className,
       )}
@@ -149,17 +149,81 @@ export function PageHeader({
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="font-display text-[40px] font-semibold leading-[1.1] tracking-[-0.28px] text-apple-ink sm:text-[56px] sm:leading-[1.07]">
+        <h1 className="font-display text-[34px] font-semibold leading-[1.18] tracking-[-0.374px] text-apple-ink sm:text-[44px] sm:leading-[1.1]">
           {title}
         </h1>
         {description ? (
-          <p className="max-w-2xl font-display text-[24px] font-light leading-[1.5] tracking-normal text-apple-muted-80 sm:text-[28px] sm:leading-[1.14] sm:tracking-[0.196px]">
+          <p className="max-w-2xl font-display text-[21px] font-normal leading-[1.35] tracking-[0.231px] text-apple-muted-80 sm:text-[24px] sm:font-light sm:leading-[1.5] sm:tracking-normal">
             {description}
           </p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
     </header>
+  );
+}
+
+export function HeroBand({
+  eyebrow,
+  title,
+  description,
+  actions,
+  children,
+  tone = "dark",
+}: {
+  eyebrow?: ReactNode;
+  title: ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
+  children?: ReactNode;
+  tone?: "dark" | "light";
+}) {
+  const isDark = tone === "dark";
+
+  return (
+    <section
+      className={cn(
+        "relative overflow-hidden px-5 py-16 sm:px-6 lg:py-20",
+        isDark
+          ? "bg-apple-tile-1 text-white"
+          : "bg-apple-canvas text-apple-ink",
+      )}
+    >
+      <div className="mx-auto flex max-w-[980px] flex-col gap-8">
+        <div className="flex max-w-3xl flex-col gap-4">
+          {eyebrow ? (
+            <p
+              className={cn(
+                "font-text text-sm font-semibold leading-[1.29] tracking-[-0.224px]",
+                isDark ? "text-apple-body-muted" : "text-apple-muted-48",
+              )}
+            >
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1
+            className={cn(
+              "font-display text-[44px] font-semibold leading-[1.07] tracking-[-0.28px] sm:text-[64px]",
+              isDark ? "text-white" : "text-apple-ink",
+            )}
+          >
+            {title}
+          </h1>
+          {description ? (
+            <p
+              className={cn(
+                "max-w-2xl font-display text-[24px] font-light leading-[1.5] tracking-normal sm:text-[28px] sm:leading-[1.14] sm:tracking-[0.196px]",
+                isDark ? "text-apple-body-muted" : "text-apple-muted-80",
+              )}
+            >
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+        {children ? <div>{children}</div> : null}
+      </div>
+    </section>
   );
 }
 

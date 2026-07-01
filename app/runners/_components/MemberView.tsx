@@ -8,7 +8,7 @@ import {
 import type { MemberStats } from "@/lib/members";
 import {
   BackLink,
-  PageHeader,
+  HeroBand,
   PageShell,
   SectionLabel,
   SubNav,
@@ -29,25 +29,26 @@ export function MemberView({ stats, isSelf }: Props) {
       <SubNav title={isSelf ? "내 기록" : "러너 기록"}>
         <BackLink href="/sessions">아카이브</BackLink>
       </SubNav>
+      <HeroBand
+        eyebrow={
+          <>
+            {isSelf ? "My running" : "Runner"} · 가입 {formatDate(stats.joinedAt)}
+          </>
+        }
+        title={
+          <>
+            {stats.name}
+            {stats.role === "ADMIN" && (
+              <span className="ml-3 align-middle rounded-full border border-white/20 px-3 py-1 font-text text-xs font-normal leading-none tracking-[-0.12px] text-white/80">
+                ADMIN
+              </span>
+            )}
+          </>
+        }
+        description="거리, 페이스, 최근 참여 기록을 한 화면에서 확인합니다."
+      />
+
       <PageShell width="content" surface="parchment">
-        <PageHeader
-          eyebrow={
-            <>
-              {isSelf ? "My running" : "Runner"} · 가입 {formatDate(stats.joinedAt)}
-            </>
-          }
-          title={
-            <>
-              {stats.name}
-              {stats.role === "ADMIN" && (
-                <span className="ml-3 align-middle rounded-full bg-apple-canvas px-3 py-1 font-text text-xs font-normal leading-none tracking-[-0.12px] text-apple-primary">
-                  ADMIN
-                </span>
-              )}
-            </>
-          }
-          description="거리, 페이스, 최근 참여 기록을 한 화면에서 확인합니다."
-        />
 
         <section className="mb-8 grid gap-4 sm:grid-cols-3">
           <Kpi

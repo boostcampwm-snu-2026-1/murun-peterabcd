@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { requireApproved } from "@/lib/guard";
 import {
   BackLink,
-  PageHeader,
+  HeroBand,
   PageShell,
   SectionLabel,
   SubNav,
@@ -105,12 +105,25 @@ export default async function SessionDetailPage({ params }: PageProps) {
         )}
       </SubNav>
 
+      <HeroBand
+        eyebrow={formatDateHeader(sessionRow.date)}
+        title={sessionRow.location}
+        description={metaLine}
+        actions={
+          isHostOrAdmin ? (
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="border-white bg-transparent text-white"
+            >
+              <Link href={`/sessions/${sessionRow.id}/edit`}>세션 수정</Link>
+            </Button>
+          ) : null
+        }
+      />
+
       <PageShell width="content" surface="parchment">
-        <PageHeader
-          eyebrow={formatDateHeader(sessionRow.date)}
-          title={sessionRow.location}
-          description={metaLine}
-        />
 
         <PhotoSection
           sessionId={sessionRow.id}

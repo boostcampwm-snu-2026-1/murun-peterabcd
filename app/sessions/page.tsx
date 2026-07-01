@@ -9,7 +9,7 @@ import {
   type SessionArchiveSearchParams,
 } from "@/lib/session-filters";
 import {
-  PageHeader,
+  HeroBand,
   PageShell,
   SubNav,
   UtilityCard,
@@ -51,12 +51,20 @@ export default async function SessionsArchivePage({ searchParams }: PageProps) {
         </Button>
       </SubNav>
 
+      <HeroBand
+        eyebrow="Sessions"
+        title="러닝 아카이브"
+        description="날짜, 장소, 참여 멤버로 세션을 찾아보세요."
+        actions={
+          <Button asChild size="lg">
+            <Link href="/sessions/new">새 세션 만들기</Link>
+          </Button>
+        }
+      >
+        <ArchiveSummary />
+      </HeroBand>
+
       <PageShell width="content" surface="parchment">
-        <PageHeader
-          eyebrow="Sessions"
-          title="러닝 아카이브"
-          description="날짜, 장소, 참여 멤버로 애니뮤 러닝 세션을 찾아보세요."
-        />
 
         <FilterBar
           q={filters.q ?? ""}
@@ -111,5 +119,28 @@ function EmptyFilterResult() {
         필터 초기화
       </Link>
     </UtilityCard>
+  );
+}
+
+function ArchiveSummary() {
+  return (
+    <div className="grid gap-px overflow-hidden rounded-[18px] border border-white/10 bg-white/10 sm:grid-cols-3">
+      <SummaryCell label="Surface" value="Dark tile" />
+      <SummaryCell label="Flow" value="Filter first" />
+      <SummaryCell label="Focus" value="Action Blue" />
+    </div>
+  );
+}
+
+function SummaryCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-white/[0.03] p-5">
+      <span className="block font-text text-xs uppercase leading-none tracking-[-0.12px] text-apple-body-muted">
+        {label}
+      </span>
+      <span className="mt-2 block font-display text-[21px] font-semibold leading-[1.19] tracking-[0.231px] text-white">
+        {value}
+      </span>
+    </div>
   );
 }
