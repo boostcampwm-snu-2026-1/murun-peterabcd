@@ -30,6 +30,7 @@ export function MemberView({ stats, isSelf }: Props) {
         <BackLink href="/sessions">아카이브</BackLink>
       </SubNav>
       <HeroBand
+        size="compact"
         eyebrow={
           <>
             {isSelf ? "My running" : "Runner"} · 가입 {formatDate(stats.joinedAt)}

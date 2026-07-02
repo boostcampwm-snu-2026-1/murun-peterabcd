@@ -46,6 +46,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <>
       <HeroBand
+        align="center"
         eyebrow="SNU Google only"
         title="뮤런"
         description={

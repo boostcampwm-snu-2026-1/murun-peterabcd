@@ -101,6 +101,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
       </SubNav>
 
       <HeroBand
+        size="compact"
         eyebrow={formatDateHeader(sessionRow.date)}
         title={sessionRow.location}
         description={metaLine}
