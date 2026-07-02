@@ -22,9 +22,9 @@ export function SessionCard(props: Props) {
   return (
     <Link
       href={`/sessions/${props.id}`}
-      className="group block overflow-hidden rounded-[18px] border border-apple-hairline bg-apple-canvas p-3 text-apple-ink transition-transform active:scale-[0.99]"
+      className="group block overflow-hidden rounded-[18px] border border-apple-hairline bg-apple-canvas text-apple-ink transition-transform active:scale-[0.99]"
     >
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-apple-parchment">
+      <div className="relative aspect-video w-full overflow-hidden bg-apple-parchment">
         {photoSrc ? (
           <Image
             src={photoSrc}
@@ -39,17 +39,15 @@ export function SessionCard(props: Props) {
             사진 없음
           </div>
         )}
+        <span className="absolute right-3 top-3 rounded-full bg-apple-chip/70 px-3 py-1.5 font-text text-xs font-semibold leading-none tracking-[-0.12px] text-apple-ink backdrop-blur-md">
+          참여 {props.participantCount}명
+        </span>
       </div>
-      <div className="flex flex-col gap-2 px-1 pt-4">
-        <div className="flex items-start justify-between gap-3">
-          <span className="font-text text-[17px] font-semibold leading-[1.24] tracking-[-0.374px]">
-            {formatDate(props.date)}
-          </span>
-          <span className="rounded-full bg-apple-parchment px-3 py-1 font-text text-xs leading-none tracking-[-0.12px] text-apple-muted-48">
-            참여 {props.participantCount}명
-          </span>
-        </div>
-        <p className="font-display text-[21px] font-semibold leading-[1.19] tracking-[0.231px]">
+      <div className="flex flex-col gap-1.5 p-5">
+        <span className="font-text text-sm font-semibold leading-[1.29] tracking-[-0.224px] text-apple-muted-48">
+          {formatDate(props.date)}
+        </span>
+        <p className="font-display text-[24px] font-semibold leading-[1.19] tracking-[-0.28px]">
           {props.location}
         </p>
         <p className="font-text text-sm leading-[1.43] tracking-[-0.224px] text-apple-muted-48">

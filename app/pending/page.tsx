@@ -21,6 +21,8 @@ export default async function PendingPage() {
   return (
     <>
       <HeroBand
+        align="center"
+        size="compact"
         eyebrow="Approval required"
         title="승인 대기 중"
         description={

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { GlobalNav } from "@/components/layout/AppChrome";
+import { GlobalNav, SiteFooter } from "@/components/layout/AppChrome";
 import { auth } from "@/lib/auth";
 
 // NEXT_PUBLIC_APP_URL 이 비어 있으면 Next 기본(요청 host)을 쓴다.
@@ -42,14 +42,15 @@ export default async function RootLayout({
 }) {
   const session = await auth();
 
+  const approved = Boolean(session?.user.approved);
+  const isAdmin = session?.user.role === "ADMIN";
+
   return (
     <html lang="ko">
       <body>
-        <GlobalNav
-          approved={Boolean(session?.user.approved)}
-          isAdmin={session?.user.role === "ADMIN"}
-        />
+        <GlobalNav approved={approved} isAdmin={isAdmin} />
         {children}
+        <SiteFooter approved={approved} isAdmin={isAdmin} />
       </body>
     </html>
   );
